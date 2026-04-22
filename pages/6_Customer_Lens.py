@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import streamlit as st
 
-from utils.data_loader import load_data, TIER_ORDER, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT
+from utils.data_loader import load_data, TIER_ORDER, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT, CHART_FONT_FAMILY, CHART_FONT_FAMILY
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
@@ -70,7 +70,7 @@ with col_tier:
         height=300,
         margin=dict(l=0, r=0, t=10, b=0),
         showlegend=False,
-        font=dict(color=CHART_FONT, size=10),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=10),
     )
     st.plotly_chart(fig_tier, use_container_width=True)
 
@@ -95,7 +95,7 @@ with col_pay:
         height=300,
         margin=dict(l=0, r=0, t=10, b=0),
         showlegend=False,
-        font=dict(color=CHART_FONT, size=10),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=10),
     )
     st.plotly_chart(fig_pay, use_container_width=True)
 
@@ -140,7 +140,7 @@ with col_spend:
         yaxis2=dict(title="Avg Rides/Customer", overlaying="y", side="right", gridcolor=CHART_GRID),
         xaxis=dict(gridcolor=CHART_GRID),
         legend=dict(orientation="h", x=0, y=1.1, font_size=11),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
         bargap=0.35,
     )
     st.plotly_chart(fig_spend, use_container_width=True)
@@ -170,7 +170,7 @@ fig_rdist.update_layout(
     margin=dict(l=0, r=0, t=10, b=0),
     xaxis=dict(gridcolor=CHART_GRID),
     yaxis=dict(title="Customers", gridcolor=CHART_GRID),
-    font=dict(color=CHART_FONT, size=11),
+    font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     bargap=0.05,
 )
 st.plotly_chart(fig_rdist, use_container_width=True)

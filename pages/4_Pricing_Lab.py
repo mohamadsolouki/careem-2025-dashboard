@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
-from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT
+from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT, CHART_FONT_FAMILY, CHART_FONT_FAMILY
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
@@ -142,7 +142,7 @@ with col_wf:
         height=340,
         margin=dict(l=0, r=0, t=20, b=0),
         yaxis=dict(title="GMV (AED M)", gridcolor=CHART_GRID),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_wf, use_container_width=True)
 
@@ -177,7 +177,7 @@ with col_sc:
         xaxis=dict(title="Surge Multiplier ×", gridcolor=CHART_GRID),
         yaxis=dict(title="Fare (AED)", gridcolor=CHART_GRID),
         legend=dict(font_size=11),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_sc, use_container_width=True)
 

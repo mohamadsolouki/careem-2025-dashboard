@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import streamlit as st
 
-from utils.data_loader import load_data, CITY_COORDS, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT
+from utils.data_loader import load_data, CITY_COORDS, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT, CHART_FONT_FAMILY, CHART_FONT_FAMILY
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
@@ -95,18 +95,19 @@ with col_map:
         )
         fig_map.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
-            geo_bgcolor="#F8FAFC",
             height=460,
             margin=dict(l=0, r=0, t=10, b=0),
             coloraxis_colorbar=dict(
-                title="Completion",
+                title=dict(
+                    text="Completion",
+                    font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=10),
+                ),
                 tickformat=".0%",
                 thickness=10,
                 len=0.6,
-                tickfont=dict(color=CHART_FONT, size=10),
-                titlefont=dict(color=CHART_FONT, size=10),
+                tickfont=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=10),
             ),
-            font=dict(color=CHART_FONT, size=11),
+            font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
         )
         st.plotly_chart(fig_map, use_container_width=True)
 
@@ -150,7 +151,7 @@ fig_farekm.update_layout(
     margin=dict(l=0, r=0, t=10, b=0),
     xaxis=dict(title="AED per km", gridcolor=CHART_GRID),
     yaxis=dict(gridcolor=CHART_GRID),
-    font=dict(color=CHART_FONT, size=12),
+    font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=12),
 )
 st.plotly_chart(fig_farekm, use_container_width=True)
 

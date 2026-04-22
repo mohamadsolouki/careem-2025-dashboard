@@ -22,13 +22,21 @@ PLOTLY_TEMPLATE = "plotly_white"
 # Chart axis / grid colours — import in pages instead of hardcoding
 CHART_GRID = "#E2E8F0"
 CHART_FONT = "#64748B"
+CHART_FONT_FAMILY = "'Inter', 'DM Sans', -apple-system, sans-serif"
 
 _CSS = """
 <style>
+/* ── Google Fonts — Inter ── */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
 /* ── Bootstrap Icons (CDN) ── */
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css");
 
 /* ── Reset & base ── */
+html, body, [data-testid="stAppViewContainer"],
+[data-testid="stSidebar"],
+.stMarkdown, .stText, button, input, select, textarea {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
 html, body, [data-testid="stAppViewContainer"] {
     background-color: #F8FAFC !important;
     color: #0F172A !important;

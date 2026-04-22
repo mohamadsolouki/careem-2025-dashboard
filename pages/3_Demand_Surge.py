@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
-from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT
+from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT, CHART_FONT_FAMILY, CHART_FONT_FAMILY
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
@@ -66,8 +66,8 @@ with col_heat:
         showscale=True,
         colorbar=dict(
             thickness=10, len=0.8,
-            tickfont=dict(color=CHART_FONT, size=10),
-            title=dict(text="Rides", font=dict(color=CHART_FONT, size=10)),
+            tickfont=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=10),
+            title=dict(text="Rides", font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=10)),
         ),
     ))
     fig_heat.update_layout(
@@ -78,7 +78,7 @@ with col_heat:
         margin=dict(l=0, r=0, t=10, b=0),
         xaxis=dict(title="Hour of Day", tickmode="linear", dtick=2, gridcolor=CHART_GRID),
         yaxis=dict(title="", gridcolor=CHART_GRID),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_heat, use_container_width=True)
 
@@ -105,7 +105,7 @@ with col_surge:
         showlegend=False,
         xaxis=dict(gridcolor=CHART_GRID),
         yaxis=dict(gridcolor=CHART_GRID, categoryorder="array", categoryarray=list(reversed(bucket_order))),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_surge, use_container_width=True)
 
@@ -152,7 +152,7 @@ for col, metric, fmt, label in [
         showlegend=False,
         yaxis=dict(gridcolor=CHART_GRID, tickformat=fmt if "%" in fmt else None),
         xaxis=dict(gridcolor=CHART_GRID),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     )
     col.plotly_chart(fig_cmp, use_container_width=True)
 

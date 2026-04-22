@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import streamlit as st
 
-from utils.data_loader import load_data, CITY_COORDS, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT
+from utils.data_loader import load_data, CITY_COORDS, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT, CHART_FONT_FAMILY, CHART_FONT_FAMILY
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
@@ -78,7 +78,7 @@ fig_trend.update_layout(
     yaxis=dict(title="GMV (AED M)", gridcolor=CHART_GRID),
     yaxis2=dict(title="Rides", overlaying="y", side="right", gridcolor=CHART_GRID),
     xaxis=dict(gridcolor=CHART_GRID),
-    font=dict(color=CHART_FONT, size=11),
+    font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     bargap=0.25,
 )
 st.plotly_chart(fig_trend, use_container_width=True)
@@ -108,7 +108,7 @@ with col_prod:
         margin=dict(l=0, r=0, t=10, b=0),
         showlegend=True,
         legend=dict(font_size=10, x=0, y=-0.15, orientation="h"),
-        font=dict(color=CHART_FONT, size=10),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=10),
     )
     fig_prod.update_traces(textinfo="percent", textfont_size=10)
     st.plotly_chart(fig_prod, use_container_width=True)
@@ -135,7 +135,7 @@ with col_city:
         margin=dict(l=0, r=0, t=10, b=0),
         showlegend=True,
         legend=dict(font_size=10, x=0, y=-0.15, orientation="h"),
-        font=dict(color=CHART_FONT, size=10),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=10),
     )
     fig_city.update_traces(textinfo="percent", textfont_size=10)
     st.plotly_chart(fig_city, use_container_width=True)

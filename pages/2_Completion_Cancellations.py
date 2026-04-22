@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import streamlit as st
 
-from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT
+from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT, CHART_FONT_FAMILY, CHART_FONT_FAMILY
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
@@ -78,7 +78,7 @@ with col_funnel:
         margin=dict(l=0, r=0, t=10, b=0),
         xaxis=dict(title="Rides", gridcolor=CHART_GRID),
         yaxis=dict(gridcolor=CHART_GRID),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_funnel, use_container_width=True)
 
@@ -110,7 +110,7 @@ with col_reason:
         margin=dict(l=0, r=0, t=10, b=0),
         xaxis=dict(gridcolor=CHART_GRID),
         yaxis=dict(gridcolor=CHART_GRID),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_reason, use_container_width=True)
 
@@ -144,7 +144,7 @@ with col_hour:
         margin=dict(l=0, r=0, t=10, b=0),
         yaxis=dict(tickformat=".0%", gridcolor=CHART_GRID),
         xaxis=dict(gridcolor=CHART_GRID),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_hour, use_container_width=True)
 

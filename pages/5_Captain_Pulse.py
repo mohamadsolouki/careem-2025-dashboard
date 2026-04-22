@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
-from utils.data_loader import load_data, TENURE_ORDER, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT
+from utils.data_loader import load_data, TENURE_ORDER, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT, CHART_FONT_FAMILY, CHART_FONT_FAMILY
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
@@ -85,7 +85,7 @@ with col_ten:
         margin=dict(l=0, r=0, t=10, b=0),
         xaxis=dict(gridcolor=CHART_GRID),
         yaxis=dict(gridcolor=CHART_GRID),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_tenure, use_container_width=True)
 
@@ -115,7 +115,7 @@ with col_hist:
         margin=dict(l=0, r=0, t=10, b=0),
         xaxis=dict(gridcolor=CHART_GRID),
         yaxis=dict(title="Captains", gridcolor=CHART_GRID),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
         bargap=0.05,
     )
     st.plotly_chart(fig_hist, use_container_width=True)
@@ -165,7 +165,7 @@ with col_decile:
         margin=dict(l=0, r=0, t=10, b=0),
         yaxis=dict(tickformat=".0%", gridcolor=CHART_GRID),
         xaxis=dict(gridcolor=CHART_GRID),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_decile, use_container_width=True)
 
@@ -198,7 +198,7 @@ with col_rating:
         xaxis=dict(range=[4, 5], gridcolor=CHART_GRID),
         yaxis=dict(gridcolor=CHART_GRID),
         coloraxis_showscale=False,
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_rating, use_container_width=True)
 

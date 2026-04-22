@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import streamlit as st
 
-from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT
+from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT, CHART_FONT_FAMILY, CHART_FONT_FAMILY
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
@@ -70,7 +70,7 @@ with col_eta:
         margin=dict(l=0, r=0, t=10, b=0),
         xaxis=dict(title="Hour of Day", gridcolor=CHART_GRID, dtick=2),
         yaxis=dict(title="Avg ETA Deviation (min)\n+ve = late", gridcolor=CHART_GRID),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_eta, use_container_width=True)
 
@@ -107,7 +107,7 @@ with col_vtat:
         showlegend=False,
         xaxis=dict(gridcolor=CHART_GRID, tickangle=-15),
         yaxis=dict(gridcolor=CHART_GRID),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_vtat, use_container_width=True)
 
@@ -135,7 +135,7 @@ with col_cap_hist:
         coloraxis_showscale=False,
         xaxis=dict(title="Stars", gridcolor=CHART_GRID),
         yaxis=dict(gridcolor=CHART_GRID),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_cr, use_container_width=True)
 
@@ -160,7 +160,7 @@ with col_cust_hist:
         coloraxis_showscale=False,
         xaxis=dict(title="Stars", gridcolor=CHART_GRID),
         yaxis=dict(gridcolor=CHART_GRID),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_cusr, use_container_width=True)
 
@@ -199,7 +199,7 @@ with col_city_rat:
         yaxis=dict(range=[4, 5], title="Rating ★", gridcolor=CHART_GRID),
         xaxis=dict(gridcolor=CHART_GRID),
         legend=dict(orientation="h", x=0, y=1.1, font_size=11),
-        font=dict(color=CHART_FONT, size=11),
+        font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
         bargap=0.25,
         bargroupgap=0.08,
     )
