@@ -1,0 +1,191 @@
+"""
+Page 4 — Pricing Lab (Prescriptive)
+What-if sliders: Surge Adjustment · Target Completion · Fare Adjustment
+Live-computed simulated GMV + completion recovery estimate
+"""
+
+import plotly.graph_objects as go
+import plotly.express as px
+import pandas as pd
+import numpy as np
+import streamlit as st
+
+from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE
+from utils.filters import apply_filters
+from utils.styles import inject_css, page_header, insight_box, section_title
+
+st.set_page_config(page_title="Pricing Lab · Careem 2025", page_icon="🔬", layout="wide")
+inject_css()
+
+df_full = load_data()
+df = apply_filters(df_full)
+
+page_header("Pricing Lab", "What-if simulators — prescriptive analytics in action")
+
+completed = df[df["Is_Completed"]]
+baseline_gmv        = completed["Fare_AED"].sum()
+baseline_rides      = len(df)
+baseline_comp       = df["Is_Completed"].mean()
+baseline_comp_count = df["Is_Completed"].sum()
+
+# ── Slider controls ────────────────────────────────────────────────────────────
+st.markdown(
+    '<div style="background:#1E293B;border:1px solid #2D3F55;border-radius:12px;padding:20px 28px;margin-bottom:24px;">',
+    unsafe_allow_html=True,
+)
+st.markdown('<p style="font-size:13px;font-weight:600;color:#94A3B8;margin:0 0 16px 0;">Adjust the parameters below and see the simulated impact update instantly.</p>', unsafe_allow_html=True)
+
+ctrl_a, ctrl_b, ctrl_c = st.columns(3)
+
+with ctrl_a:
+    surge_adj = st.slider(
+        "Surge Adjustment ×",
+        min_value=0.80, max_value=2.00,
+        value=1.00, step=0.05,
+        help="Multiply all surge values by this factor. <1 = reduce surge; >1 = increase surge.",
+    )
+with ctrl_b:
+    target_comp = st.slider(
+        "Target Completion Rate (%)",
+        min_value=80, max_value=95,
+        value=87, step=1,
+        help="What completion rate are you targeting? Simulates ride recovery.",
+    )
+with ctrl_c:
+    fare_adj = st.slider(
+        "Fare Adjustment (%)",
+        min_value=-20, max_value=20,
+        value=0, step=1,
+        help="Percentage change to all fares (e.g. +5 = 5% fare increase).",
+    )
+st.markdown("</div>", unsafe_allow_html=True)
+
+# ── Simulate ──────────────────────────────────────────────────────────────────
+fare_factor   = 1 + fare_adj / 100
+sim_gmv       = baseline_gmv * surge_adj * fare_factor
+
+# Completion recovery: delta from target × baseline rides = recovered rides
+target_rate   = target_comp / 100
+delta_comp    = max(target_rate - baseline_comp, 0)
+recovered_rides = int(baseline_rides * delta_comp)
+avg_fare_base = completed["Fare_AED"].mean() if len(completed) else 60
+recovered_gmv = recovered_rides * avg_fare_base * surge_adj * fare_factor
+total_sim_gmv = sim_gmv + recovered_gmv
+
+# ── KPI comparison row ─────────────────────────────────────────────────────────
+section_title("Simulated Outcome vs Baseline")
+k1, k2, k3, k4, k5 = st.columns(5)
+
+k1.metric(
+    "Baseline GMV",
+    f"AED {baseline_gmv/1e6:.2f}M",
+)
+k2.metric(
+    "Simulated GMV",
+    f"AED {total_sim_gmv/1e6:.2f}M",
+    delta=f"AED {(total_sim_gmv - baseline_gmv)/1e6:+.2f}M",
+    delta_color="normal" if total_sim_gmv >= baseline_gmv else "inverse",
+)
+k3.metric(
+    "Recovered Rides",
+    f"{recovered_rides:,}",
+    delta=f"{delta_comp:+.1%} completion lift",
+    delta_color="normal" if recovered_rides >= 0 else "inverse",
+)
+k4.metric(
+    "Monthly Recovery Est.",
+    f"AED {recovered_gmv/12/1e3:.0f}K/mo",
+)
+k5.metric(
+    "Simulated Completion",
+    f"{min(target_rate, 1):.1%}",
+    delta=f"{target_rate - baseline_comp:+.1%} vs actual",
+)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ── Two charts: GMV waterfall + Surge-fare scatter ──────────────────────────────
+col_wf, col_sc = st.columns([1, 1])
+
+with col_wf:
+    section_title("GMV Waterfall — Baseline → Simulated")
+    waterfall_vals = [
+        baseline_gmv / 1e6,
+        (sim_gmv - baseline_gmv) / 1e6,
+        recovered_gmv / 1e6,
+        total_sim_gmv / 1e6,
+    ]
+    waterfall_text = [
+        f"AED {baseline_gmv/1e6:.2f}M",
+        f"AED {(sim_gmv - baseline_gmv)/1e6:+.2f}M",
+        f"AED {recovered_gmv/1e6:+.2f}M",
+        f"AED {total_sim_gmv/1e6:.2f}M",
+    ]
+    fig_wf = go.Figure(go.Waterfall(
+        name="GMV",
+        orientation="v",
+        measure=["absolute", "relative", "relative", "total"],
+        x=["Baseline GMV", "Surge/Fare Effect", "Ride Recovery", "Simulated GMV"],
+        y=waterfall_vals,
+        text=waterfall_text,
+        textposition="outside",
+        connector=dict(line=dict(color="#2D3F55")),
+        decreasing=dict(marker_color="#EF4444"),
+        increasing=dict(marker_color="#00B14F"),
+        totals=dict(marker_color="#38BDF8"),
+        textfont=dict(size=11),
+    ))
+    fig_wf.update_layout(
+        template=PLOTLY_TEMPLATE,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=340,
+        margin=dict(l=0, r=0, t=20, b=0),
+        yaxis=dict(title="GMV (AED M)", gridcolor="#2D3F55"),
+        font=dict(color="#94A3B8", size=11),
+    )
+    st.plotly_chart(fig_wf, use_container_width=True)
+
+with col_sc:
+    section_title("Surge × Fare — Actual Rides (Completed)")
+    sample = completed.sample(min(5000, len(completed)), random_state=42)
+    sim_fare_col  = sample["Fare_AED"] * fare_factor * surge_adj
+
+    fig_sc = go.Figure()
+    fig_sc.add_scatter(
+        x=sample["Surge_Multiplier"],
+        y=sample["Fare_AED"],
+        mode="markers",
+        name="Actual Rides",
+        marker=dict(color="#2D3F55", size=3, opacity=0.6),
+    )
+    # Simulated point: avg scenario
+    sim_surge_pt = completed["Surge_Multiplier"].mean() * surge_adj
+    sim_fare_pt  = avg_fare_base * fare_factor * surge_adj
+    fig_sc.add_scatter(
+        x=[sim_surge_pt], y=[sim_fare_pt],
+        mode="markers",
+        name="Simulated Avg",
+        marker=dict(color="#F59E0B", size=16, symbol="star"),
+    )
+    fig_sc.update_layout(
+        template=PLOTLY_TEMPLATE,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=340,
+        margin=dict(l=0, r=0, t=20, b=0),
+        xaxis=dict(title="Surge Multiplier ×", gridcolor="#2D3F55"),
+        yaxis=dict(title="Fare (AED)", gridcolor="#2D3F55"),
+        legend=dict(font_size=11),
+        font=dict(color="#94A3B8", size=11),
+    )
+    st.plotly_chart(fig_sc, use_container_width=True)
+
+# ── Strategic insight ──────────────────────────────────────────────────────────
+insight_box(
+    "💡 <strong>Prescriptive finding:</strong> A <strong>3 percentage-point</strong> completion lift "
+    "(84.2% → 87.2%) by directing captain incentives to supply-gap windows would recover "
+    "~<strong>15,000 rides/month</strong> — approximately <strong>AED 0.9M of incremental monthly GMV</strong> "
+    "on the 2025 baseline, worth ~<strong>AED 11M annually</strong>. "
+    "This requires no fare increase — only better captain supply allocation during peak and Ramadan windows."
+)
