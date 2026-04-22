@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
-from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE
+from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
@@ -56,18 +56,18 @@ with col_heat:
         x=heat_pivot.columns.tolist(),
         y=heat_pivot.index.tolist(),
         colorscale=[
-            [0.0,  "#0F172A"],
-            [0.25, "#1E293B"],
-            [0.5,  "#00622C"],
+            [0.0,  "#F0FDF4"],
+            [0.25, "#BBF7D0"],
+            [0.5,  "#4ADE80"],
             [0.75, "#00B14F"],
-            [1.0,  "#6EE7B7"],
+            [1.0,  "#166534"],
         ],
         hovertemplate="Hour: %{x}<br>Day: %{y}<br>Rides: %{z:,}<extra></extra>",
         showscale=True,
         colorbar=dict(
             thickness=10, len=0.8,
-            tickfont=dict(color="#94A3B8", size=10),
-            title=dict(text="Rides", font=dict(color="#94A3B8", size=10)),
+            tickfont=dict(color=CHART_FONT, size=10),
+            title=dict(text="Rides", font=dict(color=CHART_FONT, size=10)),
         ),
     ))
     fig_heat.update_layout(
@@ -76,9 +76,9 @@ with col_heat:
         plot_bgcolor="rgba(0,0,0,0)",
         height=320,
         margin=dict(l=0, r=0, t=10, b=0),
-        xaxis=dict(title="Hour of Day", tickmode="linear", dtick=2, gridcolor="#2D3F55"),
-        yaxis=dict(title="", gridcolor="#2D3F55"),
-        font=dict(color="#94A3B8", size=11),
+        xaxis=dict(title="Hour of Day", tickmode="linear", dtick=2, gridcolor=CHART_GRID),
+        yaxis=dict(title="", gridcolor=CHART_GRID),
+        font=dict(color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_heat, use_container_width=True)
 
@@ -103,9 +103,9 @@ with col_surge:
         height=320,
         margin=dict(l=0, r=0, t=10, b=0),
         showlegend=False,
-        xaxis=dict(gridcolor="#2D3F55"),
-        yaxis=dict(gridcolor="#2D3F55", categoryorder="array", categoryarray=list(reversed(bucket_order))),
-        font=dict(color="#94A3B8", size=11),
+        xaxis=dict(gridcolor=CHART_GRID),
+        yaxis=dict(gridcolor=CHART_GRID, categoryorder="array", categoryarray=list(reversed(bucket_order))),
+        font=dict(color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_surge, use_container_width=True)
 
@@ -137,7 +137,7 @@ for col, metric, fmt, label in [
 
     fig_cmp = go.Figure(go.Bar(
         x=cmp_df["Period"], y=cmp_df[metric],
-        marker_color=["#F59E0B", "#2D3F55"],
+        marker_color=["#F59E0B", "#CBD5E1"],
         text=[f"{v:{fmt}}" for v in cmp_df[metric]],
         textposition="outside",
         textfont=dict(size=12),
@@ -150,17 +150,17 @@ for col, metric, fmt, label in [
         height=200,
         margin=dict(l=0, r=0, t=30, b=0),
         showlegend=False,
-        yaxis=dict(gridcolor="#2D3F55", tickformat=fmt if "%" in fmt else None),
-        xaxis=dict(gridcolor="#2D3F55"),
-        font=dict(color="#94A3B8", size=11),
+        yaxis=dict(gridcolor=CHART_GRID, tickformat=fmt if "%" in fmt else None),
+        xaxis=dict(gridcolor=CHART_GRID),
+        font=dict(color=CHART_FONT, size=11),
     )
     col.plotly_chart(fig_cmp, use_container_width=True)
 
 # ── Insight ────────────────────────────────────────────────────────────────────
 insight_box(
-    "🌙 <strong>Ramadan 2025 (Mar 1–30)</strong>: surge rises to <strong>1.24×</strong> and "
-    "rider wait climbs to <strong>7.24 min</strong> (vs 5.48 min off-peak). "
-    "The 17:00–18:00 pre-Iftar window is the sharpest supply stress — captain incentives "
-    "during this window in Riyadh and Jeddah would have the highest ROI. "
-    "Peak-hour rides carry a <strong>1.289×</strong> surge vs <strong>1.050×</strong> off-peak."
+    '<i class="bi bi-moon-stars-fill" style="color:#3B82F6"></i> <strong>Ramadan 2025 (Mar 1–30)</strong>: surge rises to <strong>1.24×</strong> and '
+    'rider wait climbs to <strong>7.24 min</strong> (vs 5.48 min off-peak). '
+    'The 17:00–18:00 pre-Iftar window is the sharpest supply stress — captain incentives '
+    'during this window in Riyadh and Jeddah would have the highest ROI. '
+    'Peak-hour rides carry a <strong>1.289×</strong> surge vs <strong>1.050×</strong> off-peak.'
 )

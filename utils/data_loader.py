@@ -30,7 +30,7 @@ TIER_ORDER = ["Regular", "Silver", "Gold", "Platinum", "Careem Plus"]
 TENURE_ORDER = ["< 6 months", "6–12 months", "1–2 years", "2–3 years", "3+ years"]
 
 # Re-exported so pages only need to import from data_loader
-from utils.styles import PLOTLY_COLORS, PLOTLY_TEMPLATE  # noqa: E402
+from utils.styles import PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT  # noqa: E402
 
 
 @st.cache_data(show_spinner="Loading 500,000 rides…", ttl=3600)

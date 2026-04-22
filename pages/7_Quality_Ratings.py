@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import streamlit as st
 
-from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE
+from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
@@ -68,9 +68,9 @@ with col_eta:
         plot_bgcolor="rgba(0,0,0,0)",
         height=300,
         margin=dict(l=0, r=0, t=10, b=0),
-        xaxis=dict(title="Hour of Day", gridcolor="#2D3F55", dtick=2),
-        yaxis=dict(title="Avg ETA Deviation (min)\n+ve = late", gridcolor="#2D3F55"),
-        font=dict(color="#94A3B8", size=11),
+        xaxis=dict(title="Hour of Day", gridcolor=CHART_GRID, dtick=2),
+        yaxis=dict(title="Avg ETA Deviation (min)\n+ve = late", gridcolor=CHART_GRID),
+        font=dict(color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_eta, use_container_width=True)
 
@@ -105,9 +105,9 @@ with col_vtat:
         height=300,
         margin=dict(l=0, r=0, t=10, b=0),
         showlegend=False,
-        xaxis=dict(gridcolor="#2D3F55", tickangle=-15),
-        yaxis=dict(gridcolor="#2D3F55"),
-        font=dict(color="#94A3B8", size=11),
+        xaxis=dict(gridcolor=CHART_GRID, tickangle=-15),
+        yaxis=dict(gridcolor=CHART_GRID),
+        font=dict(color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_vtat, use_container_width=True)
 
@@ -133,9 +133,9 @@ with col_cap_hist:
         height=260,
         margin=dict(l=0, r=0, t=10, b=0),
         coloraxis_showscale=False,
-        xaxis=dict(title="Stars", gridcolor="#2D3F55"),
-        yaxis=dict(gridcolor="#2D3F55"),
-        font=dict(color="#94A3B8", size=11),
+        xaxis=dict(title="Stars", gridcolor=CHART_GRID),
+        yaxis=dict(gridcolor=CHART_GRID),
+        font=dict(color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_cr, use_container_width=True)
 
@@ -158,9 +158,9 @@ with col_cust_hist:
         height=260,
         margin=dict(l=0, r=0, t=10, b=0),
         coloraxis_showscale=False,
-        xaxis=dict(title="Stars", gridcolor="#2D3F55"),
-        yaxis=dict(gridcolor="#2D3F55"),
-        font=dict(color="#94A3B8", size=11),
+        xaxis=dict(title="Stars", gridcolor=CHART_GRID),
+        yaxis=dict(gridcolor=CHART_GRID),
+        font=dict(color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_cusr, use_container_width=True)
 
@@ -196,10 +196,10 @@ with col_city_rat:
         height=260,
         margin=dict(l=0, r=0, t=10, b=0),
         barmode="group",
-        yaxis=dict(range=[4, 5], title="Rating ★", gridcolor="#2D3F55"),
-        xaxis=dict(gridcolor="#2D3F55"),
+        yaxis=dict(range=[4, 5], title="Rating ★", gridcolor=CHART_GRID),
+        xaxis=dict(gridcolor=CHART_GRID),
         legend=dict(orientation="h", x=0, y=1.1, font_size=11),
-        font=dict(color="#94A3B8", size=11),
+        font=dict(color=CHART_FONT, size=11),
         bargap=0.25,
         bargroupgap=0.08,
     )
@@ -207,9 +207,9 @@ with col_city_rat:
 
 # ── Insight ────────────────────────────────────────────────────────────────────
 insight_box(
-    "📍 <strong>ETA accuracy</strong> (within ±2 min) stands at <strong>69.8%</strong> — meaning "
-    "~30% of rides arrive outside the promised window. "
-    "VTAT above 8 min is the strongest predictor of customer cancellation. "
-    "Reducing average VTAT from 6.33 to under 5 min during peak hours would directly lift "
-    "completion rate and NPS. Veteran captains consistently achieve the highest ratings."
+    '<i class="bi bi-geo-alt-fill" style="color:#3B82F6"></i> <strong>ETA accuracy</strong> (within ±2 min) stands at <strong>69.8%</strong> — meaning '
+    '~30% of rides arrive outside the promised window. '
+    'VTAT above 8 min is the strongest predictor of customer cancellation. '
+    'Reducing average VTAT from 6.33 to under 5 min during peak hours would directly lift '
+    'completion rate and NPS. Veteran captains consistently achieve the highest ratings.'
 )

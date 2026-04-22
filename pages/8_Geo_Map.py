@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import streamlit as st
 
-from utils.data_loader import load_data, CITY_COORDS, PLOTLY_COLORS, PLOTLY_TEMPLATE
+from utils.data_loader import load_data, CITY_COORDS, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
@@ -84,18 +84,18 @@ with col_map:
         )
         fig_map.update_geos(
             projection_type="natural earth",
-            showland=True,         landcolor="#1E293B",
-            showocean=True,        oceancolor="#0F172A",
+            showland=True,         landcolor="#E2E8F0",
+            showocean=True,        oceancolor="#DBEAFE",
             showlakes=False,
-            showcountries=True,    countrycolor="#2D3F55",
-            showcoastlines=True,   coastlinecolor="#2D3F55",
-            bgcolor="#0F172A",
+            showcountries=True,    countrycolor="#CBD5E1",
+            showcoastlines=True,   coastlinecolor="#CBD5E1",
+            bgcolor="#F8FAFC",
             lataxis_range=[15, 40],
             lonaxis_range=[25, 70],
         )
         fig_map.update_layout(
-            paper_bgcolor="#0F172A",
-            geo_bgcolor="#0F172A",
+            paper_bgcolor="rgba(0,0,0,0)",
+            geo_bgcolor="#F8FAFC",
             height=460,
             margin=dict(l=0, r=0, t=10, b=0),
             coloraxis_colorbar=dict(
@@ -103,10 +103,10 @@ with col_map:
                 tickformat=".0%",
                 thickness=10,
                 len=0.6,
-                tickfont=dict(color="#94A3B8", size=10),
-                titlefont=dict(color="#94A3B8", size=10),
+                tickfont=dict(color=CHART_FONT, size=10),
+                titlefont=dict(color=CHART_FONT, size=10),
             ),
-            font=dict(color="#94A3B8", size=11),
+            font=dict(color=CHART_FONT, size=11),
         )
         st.plotly_chart(fig_map, use_container_width=True)
 
@@ -148,17 +148,17 @@ fig_farekm.update_layout(
     plot_bgcolor="rgba(0,0,0,0)",
     height=220,
     margin=dict(l=0, r=0, t=10, b=0),
-    xaxis=dict(title="AED per km", gridcolor="#2D3F55"),
-    yaxis=dict(gridcolor="#2D3F55"),
-    font=dict(color="#94A3B8", size=12),
+    xaxis=dict(title="AED per km", gridcolor=CHART_GRID),
+    yaxis=dict(gridcolor=CHART_GRID),
+    font=dict(color=CHART_FONT, size=12),
 )
 st.plotly_chart(fig_farekm, use_container_width=True)
 
 # ── Insight ────────────────────────────────────────────────────────────────────
 insight_box(
-    "🌍 <strong>Dubai</strong> is the highest-revenue-intensity city (AED/km), driven by Business and Hala EV. "
-    "<strong>Cairo</strong> delivers the lowest AED/km but the highest raw ride count — "
-    "a volume-vs-margin tradeoff that caps its GMV contribution despite large demand. "
-    "The two Saudi cities (Riyadh + Jeddah) have the worst completion rates in the network, "
-    "signalling the highest ROI for supply-side interventions."
+    '<i class="bi bi-globe-americas" style="color:#3B82F6"></i> <strong>Dubai</strong> is the highest-revenue-intensity city (AED/km), driven by Business and Hala EV. '
+    '<strong>Cairo</strong> delivers the lowest AED/km but the highest raw ride count — '
+    'a volume-vs-margin tradeoff that caps its GMV contribution despite large demand. '
+    'The two Saudi cities (Riyadh + Jeddah) have the worst completion rates in the network, '
+    'signalling the highest ROI for supply-side interventions.'
 )

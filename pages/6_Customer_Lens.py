@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import streamlit as st
 
-from utils.data_loader import load_data, TIER_ORDER, PLOTLY_COLORS, PLOTLY_TEMPLATE
+from utils.data_loader import load_data, TIER_ORDER, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
@@ -50,7 +50,7 @@ with col_tier:
         .sort_values("Customers", ascending=False)
     )
     tier_colors = {
-        "Regular":     "#2D3F55",
+        "Regular":     "#CBD5E1",
         "Silver":      "#94A3B8",
         "Gold":        "#F59E0B",
         "Platinum":    "#38BDF8",
@@ -70,7 +70,7 @@ with col_tier:
         height=300,
         margin=dict(l=0, r=0, t=10, b=0),
         showlegend=False,
-        font=dict(color="#94A3B8", size=10),
+        font=dict(color=CHART_FONT, size=10),
     )
     st.plotly_chart(fig_tier, use_container_width=True)
 
@@ -95,7 +95,7 @@ with col_pay:
         height=300,
         margin=dict(l=0, r=0, t=10, b=0),
         showlegend=False,
-        font=dict(color="#94A3B8", size=10),
+        font=dict(color=CHART_FONT, size=10),
     )
     st.plotly_chart(fig_pay, use_container_width=True)
 
@@ -136,11 +136,11 @@ with col_spend:
         plot_bgcolor="rgba(0,0,0,0)",
         height=300,
         margin=dict(l=0, r=0, t=10, b=0),
-        yaxis=dict(title="Avg Fare (AED)", gridcolor="#2D3F55"),
-        yaxis2=dict(title="Avg Rides/Customer", overlaying="y", side="right", gridcolor="#2D3F55"),
-        xaxis=dict(gridcolor="#2D3F55"),
+        yaxis=dict(title="Avg Fare (AED)", gridcolor=CHART_GRID),
+        yaxis2=dict(title="Avg Rides/Customer", overlaying="y", side="right", gridcolor=CHART_GRID),
+        xaxis=dict(gridcolor=CHART_GRID),
         legend=dict(orientation="h", x=0, y=1.1, font_size=11),
-        font=dict(color="#94A3B8", size=11),
+        font=dict(color=CHART_FONT, size=11),
         bargap=0.35,
     )
     st.plotly_chart(fig_spend, use_container_width=True)
@@ -168,18 +168,18 @@ fig_rdist.update_layout(
     plot_bgcolor="rgba(0,0,0,0)",
     height=220,
     margin=dict(l=0, r=0, t=10, b=0),
-    xaxis=dict(gridcolor="#2D3F55"),
-    yaxis=dict(title="Customers", gridcolor="#2D3F55"),
-    font=dict(color="#94A3B8", size=11),
+    xaxis=dict(gridcolor=CHART_GRID),
+    yaxis=dict(title="Customers", gridcolor=CHART_GRID),
+    font=dict(color=CHART_FONT, size=11),
     bargap=0.05,
 )
 st.plotly_chart(fig_rdist, use_container_width=True)
 
 # ── Insight ────────────────────────────────────────────────────────────────────
 insight_box(
-    "⚠️ <strong>Loyalty tiers are not shifting behaviour.</strong> Regular, Silver, Gold, Platinum, and "
-    "Careem Plus customers all spend within <strong>3% of each other per ride (AED 59–60)</strong> and "
-    "take almost the same number of rides per year (~33). The loyalty programme is not yet "
-    "driving meaningful incremental spend or frequency — a material revenue opportunity that "
-    "targeted offers and Careem Plus incentives could capture."
+    '<i class="bi bi-exclamation-triangle-fill" style="color:#D97706"></i> <strong>Loyalty tiers are not shifting behaviour.</strong> Regular, Silver, Gold, Platinum, and '
+    'Careem Plus customers all spend within <strong>3% of each other per ride (AED 59–60)</strong> and '
+    'take almost the same number of rides per year (~33). The loyalty programme is not yet '
+    'driving meaningful incremental spend or frequency — a material revenue opportunity that '
+    'targeted offers and Careem Plus incentives could capture.'
 )

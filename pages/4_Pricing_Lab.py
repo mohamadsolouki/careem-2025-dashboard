@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
-from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE
+from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
@@ -30,10 +30,10 @@ baseline_comp_count = df["Is_Completed"].sum()
 
 # ── Slider controls ────────────────────────────────────────────────────────────
 st.markdown(
-    '<div style="background:#1E293B;border:1px solid #2D3F55;border-radius:12px;padding:20px 28px;margin-bottom:24px;">',
+    '<div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:12px;padding:20px 28px;margin-bottom:24px;">',
     unsafe_allow_html=True,
 )
-st.markdown('<p style="font-size:13px;font-weight:600;color:#94A3B8;margin:0 0 16px 0;">Adjust the parameters below and see the simulated impact update instantly.</p>', unsafe_allow_html=True)
+st.markdown('<p style="font-size:13px;font-weight:600;color:#64748B;margin:0 0 16px 0;">Adjust the parameters below and see the simulated impact update instantly.</p>', unsafe_allow_html=True)
 
 ctrl_a, ctrl_b, ctrl_c = st.columns(3)
 
@@ -129,7 +129,7 @@ with col_wf:
         y=waterfall_vals,
         text=waterfall_text,
         textposition="outside",
-        connector=dict(line=dict(color="#2D3F55")),
+        connector=dict(line=dict(color="#CBD5E1")),
         decreasing=dict(marker_color="#EF4444"),
         increasing=dict(marker_color="#00B14F"),
         totals=dict(marker_color="#38BDF8"),
@@ -141,8 +141,8 @@ with col_wf:
         plot_bgcolor="rgba(0,0,0,0)",
         height=340,
         margin=dict(l=0, r=0, t=20, b=0),
-        yaxis=dict(title="GMV (AED M)", gridcolor="#2D3F55"),
-        font=dict(color="#94A3B8", size=11),
+        yaxis=dict(title="GMV (AED M)", gridcolor=CHART_GRID),
+        font=dict(color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_wf, use_container_width=True)
 
@@ -157,7 +157,7 @@ with col_sc:
         y=sample["Fare_AED"],
         mode="markers",
         name="Actual Rides",
-        marker=dict(color="#2D3F55", size=3, opacity=0.6),
+        marker=dict(color="#CBD5E1", size=3, opacity=0.6),
     )
     # Simulated point: avg scenario
     sim_surge_pt = completed["Surge_Multiplier"].mean() * surge_adj
@@ -174,18 +174,18 @@ with col_sc:
         plot_bgcolor="rgba(0,0,0,0)",
         height=340,
         margin=dict(l=0, r=0, t=20, b=0),
-        xaxis=dict(title="Surge Multiplier ×", gridcolor="#2D3F55"),
-        yaxis=dict(title="Fare (AED)", gridcolor="#2D3F55"),
+        xaxis=dict(title="Surge Multiplier ×", gridcolor=CHART_GRID),
+        yaxis=dict(title="Fare (AED)", gridcolor=CHART_GRID),
         legend=dict(font_size=11),
-        font=dict(color="#94A3B8", size=11),
+        font=dict(color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_sc, use_container_width=True)
 
 # ── Strategic insight ──────────────────────────────────────────────────────────
 insight_box(
-    "💡 <strong>Prescriptive finding:</strong> A <strong>3 percentage-point</strong> completion lift "
-    "(84.2% → 87.2%) by directing captain incentives to supply-gap windows would recover "
-    "~<strong>15,000 rides/month</strong> — approximately <strong>AED 0.9M of incremental monthly GMV</strong> "
-    "on the 2025 baseline, worth ~<strong>AED 11M annually</strong>. "
-    "This requires no fare increase — only better captain supply allocation during peak and Ramadan windows."
+    '<i class="bi bi-graph-up-arrow" style="color:#00B14F"></i> <strong>Prescriptive finding:</strong> A <strong>3 percentage-point</strong> completion lift '
+    '(84.2% → 87.2%) by directing captain incentives to supply-gap windows would recover '
+    '~<strong>15,000 rides/month</strong> — approximately <strong>AED 0.9M of incremental monthly GMV</strong> '
+    'on the 2025 baseline, worth ~<strong>AED 11M annually</strong>. '
+    'This requires no fare increase — only better captain supply allocation during peak and Ramadan windows.'
 )

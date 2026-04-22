@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
-from utils.data_loader import load_data, TENURE_ORDER, PLOTLY_COLORS, PLOTLY_TEMPLATE
+from utils.data_loader import load_data, TENURE_ORDER, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
@@ -83,9 +83,9 @@ with col_ten:
         plot_bgcolor="rgba(0,0,0,0)",
         height=300,
         margin=dict(l=0, r=0, t=10, b=0),
-        xaxis=dict(gridcolor="#2D3F55"),
-        yaxis=dict(gridcolor="#2D3F55"),
-        font=dict(color="#94A3B8", size=11),
+        xaxis=dict(gridcolor=CHART_GRID),
+        yaxis=dict(gridcolor=CHART_GRID),
+        font=dict(color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_tenure, use_container_width=True)
 
@@ -113,9 +113,9 @@ with col_hist:
         plot_bgcolor="rgba(0,0,0,0)",
         height=300,
         margin=dict(l=0, r=0, t=10, b=0),
-        xaxis=dict(gridcolor="#2D3F55"),
-        yaxis=dict(title="Captains", gridcolor="#2D3F55"),
-        font=dict(color="#94A3B8", size=11),
+        xaxis=dict(gridcolor=CHART_GRID),
+        yaxis=dict(title="Captains", gridcolor=CHART_GRID),
+        font=dict(color=CHART_FONT, size=11),
         bargap=0.05,
     )
     st.plotly_chart(fig_hist, use_container_width=True)
@@ -152,7 +152,7 @@ with col_decile:
     )
     fig_decile.update_traces(
         marker_color=[
-            "#00B14F" if i == 0 else "#2D3F55"
+            "#00B14F" if i == 0 else "#CBD5E1"
             for i in range(len(decile_gmv))
         ],
         textposition="outside",
@@ -163,9 +163,9 @@ with col_decile:
         plot_bgcolor="rgba(0,0,0,0)",
         height=300,
         margin=dict(l=0, r=0, t=10, b=0),
-        yaxis=dict(tickformat=".0%", gridcolor="#2D3F55"),
-        xaxis=dict(gridcolor="#2D3F55"),
-        font=dict(color="#94A3B8", size=11),
+        yaxis=dict(tickformat=".0%", gridcolor=CHART_GRID),
+        xaxis=dict(gridcolor=CHART_GRID),
+        font=dict(color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_decile, use_container_width=True)
 
@@ -195,18 +195,18 @@ with col_rating:
         plot_bgcolor="rgba(0,0,0,0)",
         height=300,
         margin=dict(l=0, r=0, t=10, b=0),
-        xaxis=dict(range=[4, 5], gridcolor="#2D3F55"),
-        yaxis=dict(gridcolor="#2D3F55"),
+        xaxis=dict(range=[4, 5], gridcolor=CHART_GRID),
+        yaxis=dict(gridcolor=CHART_GRID),
         coloraxis_showscale=False,
-        font=dict(color="#94A3B8", size=11),
+        font=dict(color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_rating, use_container_width=True)
 
 # ── Insight ────────────────────────────────────────────────────────────────────
 insight_box(
-    "🏆 <strong>Top 10% of captains (D1) generate 23.1% of GMV.</strong> "
-    "Median captain completes 108 rides/year; the 90th-percentile captain completes 239. "
-    "Veteran captains (3+ years) make up <strong>only 1.3%</strong> of the active pool — "
-    "Careem is losing experienced supply faster than it replaces it. "
-    "Retention incentives for the 2–3 year cohort (the pipeline to veteran status) would have the highest leverage."
+    '<i class="bi bi-trophy-fill" style="color:#D97706"></i> <strong>Top 10% of captains (D1) generate 23.1% of GMV.</strong> '
+    'Median captain completes 108 rides/year; the 90th-percentile captain completes 239. '
+    'Veteran captains (3+ years) make up <strong>only 1.3%</strong> of the active pool — '
+    'Careem is losing experienced supply faster than it replaces it. '
+    'Retention incentives for the 2–3 year cohort (the pipeline to veteran status) would have the highest leverage.'
 )

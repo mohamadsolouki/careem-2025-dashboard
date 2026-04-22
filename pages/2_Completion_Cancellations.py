@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import streamlit as st
 
-from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE
+from utils.data_loader import load_data, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
@@ -76,9 +76,9 @@ with col_funnel:
         plot_bgcolor="rgba(0,0,0,0)",
         height=300,
         margin=dict(l=0, r=0, t=10, b=0),
-        xaxis=dict(title="Rides", gridcolor="#2D3F55"),
-        yaxis=dict(gridcolor="#2D3F55"),
-        font=dict(color="#94A3B8", size=11),
+        xaxis=dict(title="Rides", gridcolor=CHART_GRID),
+        yaxis=dict(gridcolor=CHART_GRID),
+        font=dict(color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_funnel, use_container_width=True)
 
@@ -108,9 +108,9 @@ with col_reason:
         plot_bgcolor="rgba(0,0,0,0)",
         height=300,
         margin=dict(l=0, r=0, t=10, b=0),
-        xaxis=dict(gridcolor="#2D3F55"),
-        yaxis=dict(gridcolor="#2D3F55"),
-        font=dict(color="#94A3B8", size=11),
+        xaxis=dict(gridcolor=CHART_GRID),
+        yaxis=dict(gridcolor=CHART_GRID),
+        font=dict(color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_reason, use_container_width=True)
 
@@ -134,7 +134,7 @@ with col_hour:
     )
     fig_hour.update_traces(marker_color=[
         "#EF4444" if r > hourly["Cancel_Rate"].quantile(0.75) else "#F59E0B"
-        if r > hourly["Cancel_Rate"].quantile(0.5) else "#2D3F55"
+        if r > hourly["Cancel_Rate"].quantile(0.5) else "#CBD5E1"
         for r in hourly["Cancel_Rate"]
     ])
     fig_hour.update_layout(
@@ -142,9 +142,9 @@ with col_hour:
         plot_bgcolor="rgba(0,0,0,0)",
         height=280,
         margin=dict(l=0, r=0, t=10, b=0),
-        yaxis=dict(tickformat=".0%", gridcolor="#2D3F55"),
-        xaxis=dict(gridcolor="#2D3F55"),
-        font=dict(color="#94A3B8", size=11),
+        yaxis=dict(tickformat=".0%", gridcolor=CHART_GRID),
+        xaxis=dict(gridcolor=CHART_GRID),
+        font=dict(color=CHART_FONT, size=11),
     )
     st.plotly_chart(fig_hour, use_container_width=True)
 
@@ -173,9 +173,9 @@ with col_gap:
 
 # ── Insight ───────────────────────────────────────────────────────────────────
 insight_box(
-    "🔴 <strong>\"No Captain Available\"</strong> is the single largest failure mode (~19.8% of all failures). "
-    "<strong>Riyadh</strong> leads with the highest no-driver rate (3.25%), followed by <strong>Jeddah</strong> (3.15%) — "
-    "both concentrated during Ramadan evenings and Saudi event seasons. "
-    "Captain-initiated cancellations are uniform across cities (6.3–6.5%), signalling a "
-    "<em>systemic</em> accept–reject economics problem, not a location issue."
+    '<i class="bi bi-exclamation-triangle-fill" style="color:#DC2626"></i> <strong>"No Captain Available"</strong> is the single largest failure mode (~19.8% of all failures). '
+    '<strong>Riyadh</strong> leads with the highest no-driver rate (3.25%), followed by <strong>Jeddah</strong> (3.15%) — '
+    'both concentrated during Ramadan evenings and Saudi event seasons. '
+    'Captain-initiated cancellations are uniform across cities (6.3–6.5%), signalling a '
+    '<em>systemic</em> accept–reject economics problem, not a location issue.'
 )
