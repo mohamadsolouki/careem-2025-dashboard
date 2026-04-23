@@ -266,6 +266,11 @@ hr { border-color: #E2E8F0 !important; }
 ::-webkit-scrollbar-thumb:hover { background: #00B14F; }
 
 /* ── Navigation tiles on Home ── */
+a.nav-tile-link {
+    text-decoration: none;
+    display: block;
+    height: 100%;
+}
 .nav-tile {
     background: #FFFFFF;
     border: 1px solid #E2E8F0;

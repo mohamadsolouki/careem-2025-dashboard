@@ -128,17 +128,20 @@ row1 = st.columns(4)
 row2 = st.columns(4)
 rows = [row1, row2]
 
-for i, (icon, title, desc, _) in enumerate(pages):
+for i, (icon, title, desc, page_path) in enumerate(pages):
     row_idx  = i // 4
     col_idx  = i % 4
+    page_url = page_path.split("/")[-1]  # e.g. "1_Executive_Overview"
     with rows[row_idx][col_idx]:
         st.markdown(
             f"""
+            <a href="/{page_url}" target="_self" class="nav-tile-link">
             <div class="nav-tile">
                 <span class="nav-icon"><i class="bi {icon}"></i></span>
                 <h3>{title}</h3>
                 <p>{desc}</p>
             </div>
+            </a>
             """,
             unsafe_allow_html=True,
         )
