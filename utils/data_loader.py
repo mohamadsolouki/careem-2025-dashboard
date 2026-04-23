@@ -33,9 +33,9 @@ TENURE_ORDER = ["< 6 months", "6–12 months", "1–2 years", "2–3 years", "3+
 from utils.styles import PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT, CHART_FONT_FAMILY  # noqa: E402
 
 
-@st.cache_data(show_spinner="Loading 500,000 rides…", ttl=3600)
-def load_data() -> pd.DataFrame:
-    """Load and enrich the dataset. Cached for the session lifetime."""
+@st.cache_data(show_spinner="Loading dataset…")
+def load_data(_mtime: float = 0.0) -> pd.DataFrame:
+    """Load and enrich the dataset. Cache busts automatically when the CSV is modified."""
     df = pd.read_csv(
         _CSV,
         parse_dates=["Date"],
@@ -61,11 +61,14 @@ def load_data() -> pd.DataFrame:
     df["Is_Completed"] = df["Booking_Status"] == "Completed"
     df["Is_Cancelled"] = df["Booking_Status"].str.startswith("Cancelled", na=False)
 
-    # Convert Yes/No flags if they arrived as strings
+    # Convert Yes/No/True/False/1/0 flag columns to proper bool
+    _TRUTHY  = {"yes", "true", "1"}
+    _FALSY   = {"no", "false", "0"}
     for flag_col in ["Is_Peak_Hour", "Is_Weekend", "Is_Ramadan", "Is_Airport_Ride"]:
-        if df[flag_col].dtype == object or str(df[flag_col].dtype) == "string":
-            df[flag_col] = df[flag_col].map({"Yes": True, "No": False})
-        df[flag_col] = df[flag_col].astype(bool)
+        raw = df[flag_col].astype(str).str.strip().str.lower()
+        df[flag_col] = raw.map(
+            lambda v: True if v in _TRUTHY else (False if v in _FALSY else False)
+        ).astype(bool)
 
     # ── Surge bucket ─────────────────────────────────────────────────────
     def _surge_bucket(s):
@@ -113,6 +116,12 @@ def load_data() -> pd.DataFrame:
     df["Country"]   = df["City"].map(lambda c: CITY_COORDS.get(c, {}).get("country"))
 
     return df
+
+
+def get_data() -> pd.DataFrame:
+    """Thin wrapper that auto-passes the CSV mtime so the cache busts on any file change."""
+    mtime = _CSV.stat().st_mtime
+    return load_data(mtime)
 
 
 def gmv(df: pd.DataFrame) -> float:

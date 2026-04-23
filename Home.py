@@ -8,7 +8,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from utils.data_loader import load_data, gmv, completion_rate, avg_fare
+from utils.data_loader import get_data, gmv, completion_rate, avg_fare
 from utils.styles import inject_css, insight_box
 
 st.set_page_config(
@@ -20,7 +20,7 @@ st.set_page_config(
 inject_css()
 
 # ── Load data (cached) ───────────────────────────────────────────────────────
-df = load_data()
+df = get_data()
 
 # ── Sidebar logo only on Home ────────────────────────────────────────────────
 logo_path = Path(__file__).parent / "assets" / "careem-logo.png"

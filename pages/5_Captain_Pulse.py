@@ -9,14 +9,14 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
-from utils.data_loader import load_data, TENURE_ORDER, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT, CHART_FONT_FAMILY, CHART_FONT_FAMILY
+from utils.data_loader import get_data, TENURE_ORDER, PLOTLY_COLORS, PLOTLY_TEMPLATE, CHART_GRID, CHART_FONT, CHART_FONT_FAMILY, CHART_FONT_FAMILY
 from utils.filters import apply_filters
 from utils.styles import inject_css, page_header, insight_box, section_title
 
 st.set_page_config(page_title="Captain Pulse · Careem 2025", page_icon="🚗", layout="wide")
 inject_css()
 
-df_full = load_data()
+df_full = get_data()
 df = apply_filters(df_full)
 completed = df[df["Is_Completed"]]
 
