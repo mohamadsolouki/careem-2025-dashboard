@@ -1,9 +1,10 @@
 # Careem MENAP 2025 — Supply–Demand Intelligence Report
 
-**Course:** MIT622 Data Analytics for Managers  
-**Instructor:** Dr. Zaher Al-Sai  
-**Submission Date:** 24 April 2026  
-**Dataset:** 500,000 synthetic ride records · Jan – Dec 2025 · 5 MENAP cities · AED-normalised fares
+**Course:** MIT622 Data Analytics for Managers
+**Instructor:** Dr. Zaher Al-Sai
+**Submission Date:** 24 April 2026
+**Group:** Group 1 — Mohammadsadegh Solouki · Artin Fateh Basharzad · Fatema Alblooshi
+**Dataset:** 499,973 ride records · Jan – Dec 2025 · 5 MENAP cities · AED-normalised fares
 
 ---
 
@@ -26,9 +27,11 @@
 
 ## 1. Executive Summary
 
-Careem closed 2025 with **AED 25.31 M in gross merchandise value (GMV)** across five MENAP cities and eight product lines, on a base of **500,000 ride requests**. The overall **completion rate of 84.2 %** sits 2.8 percentage points below the internal 87 % target — a gap that translates to roughly **15,000 unserviced rides per month** and an estimated **AED 0.9 M of foregone monthly GMV** (≈ AED 11 M annually).
+Careem closed 2025 with **AED 24.68 M in gross merchandise value (GMV)** across five MENAP cities and eight product lines, on a base of **499,973 ride requests**. The overall **completion rate of 84.0 %** sits 3.0 percentage points below the internal 87 % target — a gap that translates to roughly **15,000 unserviced rides per year** and an estimated **AED 0.88 M of foregone annual GMV**.
 
 This report synthesises eight dimensions of analysis — macro KPIs, cancellation root-causes, temporal demand, pricing sensitivity, captain-supply health, customer loyalty, service quality, and geographic performance — into a coherent set of targeted interventions. The central finding is that the completion shortfall is **supply-driven, not demand-driven**: demand is strong and predictable, but captain availability collapses during identifiable windows (peak commute hours, Ramadan pre-Iftar, Saudi event seasons). Precision incentives during those windows — rather than blanket fare increases — represent the highest-ROI lever available.
+
+A secondary finding is that the loyalty programme is **not driving incremental behaviour**: all five customer tiers spend within 8 % of each other per ride and take near-identical frequencies. Redesigning the tier triggers around behavioural change rather than cumulative mileage represents a material, low-cost revenue opportunity.
 
 ---
 
@@ -36,348 +39,502 @@ This report synthesises eight dimensions of analysis — macro KPIs, cancellatio
 
 | Dimension | Detail |
 |---|---|
-| Records | 500,000 ride-level observations |
+| Records | 499,973 ride-level observations |
 | Date range | 1 January 2025 – 31 December 2025 |
 | Cities | Dubai, Abu Dhabi, Riyadh, Jeddah, Cairo |
-| Products | Go, Go+, Business, MAX, Hala, Hala EV, eBike, Bike |
-| Currency | AED (1 SAR ≈ 1.02 AED; 1 EGP ≈ 0.076 AED) |
-| Key fields | Booking ID, Request timestamp, City, Product, Customer tier, Captain tenure, Fare AED, Surge multiplier, Status, ETA deviation, VTAT, Ratings |
+| Products | Careem Go, Go+, Business, MAX, Hala Taxi, Hala EV, eBike, Bike |
+| Currency | AED-normalised (1 SAR ≈ 1.02 AED; EGP fares converted at prevailing 2025 rates) |
+| Ride attributes | Booking ID, Date, Hour, Day of Week, Month, City, Product, Customer tier, Captain tenure tier, Fare AED, Surge multiplier, Booking status, Cancellation reason, VTAT, CTAT, ETA deviation, Captain rating, Customer rating |
+| Boolean flags | Is_Peak_Hour, Is_Weekend, Is_Ramadan, Is_Airport_Ride |
+| Derived fields | Is_Completed, Is_Cancelled, Surge_Bucket, Distance_Bucket, VTAT_Bucket, YearMonth, Country (from City lookup) |
 
-The dataset is stored as a single flat CSV (`careem_rides_2025.csv`, ~110 MB, tracked via Git LFS) and loaded into the dashboard with Pandas with full PyArrow acceleration. Dimension tables (Date, City, Product, Customer Tier, Captain Tenure) are derived via Power Query M and replicated as Python DataFrames in the dashboard.
+The dataset is a single flat CSV loaded with Pandas and cached in the Streamlit dashboard. Five columns were removed during pre-processing as redundant or analytically inert: `Country` (derived from City), `Captain_Experience_Years` (fully correlated with `Captain_Tenure_Tier`), `Time` (superseded by `Hour`), `Pickup_Location`, and `Drop_Location` (88 synthetic labels with no neighbourhood-level analysis). Twenty-seven rows with `Duration_mins > 300` (impossible city-ride durations) were also filtered.
 
 ---
 
 ## 3. Executive Overview — Top-Line KPIs
 
-![Screenshot: Home Page — Executive Overview KPI Dashboard](screenshots/01_executive_overview.png)
+![Figure 1: Executive Overview Dashboard](screenshots/01_executive_overview_kpis.png)
 
 ### 3.1 Annual KPIs
 
-| Metric | Value | vs Target |
-|---|---|---|
-| Total Ride Requests | 500,000 | — |
-| Completed Rides | 421,000 (84.2 %) | −2.8 pp vs 87 % target |
-| GMV (completed rides) | AED 25.31 M | — |
-| Average Fare | AED 60.11 | — |
-| Average Surge Multiplier | 1.124× | — |
-| Customer Rating (avg) | 4.69 ★ | — |
-| Captain Rating (avg) | 4.52 ★ | — |
+| Metric | Value |
+|---|---|
+| Total Ride Requests | 499,973 |
+| Completed Rides | 420,121 (84.03 %) |
+| Gross Merchandise Value (GMV) | AED 24.68 M |
+| Average Fare (completed rides) | AED 58.75 |
+| Average Surge Multiplier (completed) | 1.132× |
+| Avg Customer Rating (completed) | 4.15 ★ |
+| Avg Captain Rating (completed) | 4.02 ★ |
+| Unique Customers | 9,000 |
+| Unique Captains | 1,800 |
+
+The completion rate of **84.03 %** is 3.0 pp below the 87 % internal target. Closing this gap is the single highest-value lever in the dataset.
 
 ### 3.2 Monthly GMV Trend
 
-GMV follows a clear seasonal arc: a modest Q1 peak driven by Ramadan demand (March), a mid-year plateau, and a slight year-end uptick. Monthly ride volumes track GMV closely, suggesting fare mix — rather than volume swings — drives most intra-year GMV variation.
+GMV peaks in **March 2025 (AED 2.45 M, 45,066 rides)** coinciding with Ramadan. The second-highest month is **October (AED 2.16 M, 43,842 rides)**, reflecting Q4 commercial season uplift. The lowest months are **February (AED 1.89 M)** and **July–August (AED 1.92 M each)**, marking the mid-year lull.
 
-![Screenshot: Monthly GMV vs Rides Trend Chart](screenshots/01b_monthly_trend.png)
+| Month | Rides | GMV (AED M) |
+|---|---|---|
+| Jan | 42,965 | 2.10 |
+| Feb | 38,928 | 1.89 |
+| **Mar (Ramadan)** | **45,066** | **2.45** |
+| Apr | 42,028 | 2.07 |
+| May | 42,958 | 2.10 |
+| Jun | 39,366 | 1.95 |
+| Jul | 39,965 | 1.92 |
+| Aug | 40,111 | 1.92 |
+| Sep | 41,968 | 2.04 |
+| **Oct** | **43,842** | **2.16** |
+| Nov | 43,254 | 2.12 |
+| Dec | 39,522 | 1.96 |
 
-### 3.3 Product & City Mix
+![Figure 2: Monthly GMV vs Rides Trend](screenshots/01b_monthly_trend.png)
 
-**By rides:** Go dominates with ~48 % of all completions, followed by Go+ (~22 %) and Business (~11 %). eBike and Bike together account for ~6 % — significant given their low fares, confirming a growing micro-mobility segment.
+### 3.3 Product Mix
 
-**By GMV:** Hala EV punches above its ride-count weight due to premium fare positioning. Careem Business generates the highest average fare (≈ AED 112) but also the **lowest completion rate (82.5 %)** — a premium-segment reliability gap that warrants its own workstream.
+By completed rides:
 
-**City GMV split:** Dubai leads at ~34 % of total GMV, followed by Riyadh (23 %), Abu Dhabi (19 %), Jeddah (14 %), and Cairo (10 %). Cairo's share is suppressed by significantly lower AED-equivalent fares despite contributing the highest raw ride count.
+| Product | Completed Rides | Share | Avg Fare (AED) | Completion Rate |
+|---|---|---|---|---|
+| Careem Go | 190,661 | 45.4 % | 48.97 | 84.2 % |
+| Careem Go+ | 76,422 | 18.2 % | 64.44 | 84.0 % |
+| Careem MAX | 53,591 | 12.8 % | 77.16 | 83.6 % |
+| Careem Business | 35,733 | 8.5 % | **107.07** | **82.9 %** (lowest) |
+| Hala Taxi | 28,701 | 6.8 % | 53.85 | 84.6 % |
+| Careem eBike | 19,302 | 4.6 % | 13.56 | 84.5 % |
+| Hala EV | 11,431 | 2.7 % | 54.10 | 84.6 % |
+| Careem Bike | 4,280 | 1.0 % | 7.36 | 85.1 % (highest) |
 
-![Screenshot: Product Mix and City Mix Donut Charts](screenshots/01c_mix_charts.png)
+**Careem Business** generates the highest average fare (AED 107.07) but has the **lowest completion rate (82.9 %)**. This premium-segment reliability gap — where the highest-paying riders are least likely to complete a trip — is a material brand-risk and revenue-risk worthy of a dedicated workstream.
+
+![Figure 3: Product Mix and City Mix](screenshots/01c_product_city_mix.png)
+
+### 3.4 City Mix (GMV)
+
+| City | Rides | GMV (AED M) | GMV Share |
+|---|---|---|---|
+| Dubai | 169,992 | 10.99 | **44.5 %** |
+| Riyadh | 119,994 | 5.97 | 24.2 % |
+| Abu Dhabi | 69,996 | 4.86 | 19.7 % |
+| Jeddah | 69,995 | 2.57 | 10.4 % |
+| Cairo | 69,996 | 0.29 | **1.2 %** |
+
+Cairo's GMV share (1.2 %) is strikingly low given it contributes the same number of rides as Abu Dhabi and Jeddah. This is entirely attributable to the AED-equivalent fare in Cairo averaging only **AED 5.00 per ride**, making Cairo a high-volume, negligible-margin city under current pricing.
 
 ---
 
 ## 4. Completion & Cancellations
 
-![Screenshot: Completion & Cancellations Funnel Page](screenshots/02_completion_cancellations.png)
+![Figure 4: Completion Funnel](screenshots/02a_completion_funnel.png)
 
 ### 4.1 Completion Funnel
 
-Of 500,000 requests:
-- **84.2 %** completed (≈ 421,000 rides)
-- **15.8 %** cancelled or unserviced (≈ 79,000 ride failures)
+Of 499,973 ride requests in 2025:
 
-Failure mode breakdown:
-| Failure Reason | Share of All Failures | Share of All Requests |
+| Outcome | Count | Share |
 |---|---|---|
-| No Captain Available | ~35 % | ~5.5 % |
-| Customer Cancelled | ~25 % | ~4.0 % |
-| Captain Cancelled | ~20 % | ~3.2 % |
-| Timeout / System | ~20 % | ~3.1 % |
+| **Completed** | **420,121** | **84.03 %** |
+| Cancelled by Captain | 32,120 | 6.42 % |
+| Cancelled by Customer | 26,257 | 5.25 % |
+| No Driver Found | 15,878 | 3.18 % |
+| Incomplete | 5,597 | 1.12 % |
+| **Total Failures** | **79,852** | **15.97 %** |
 
-**"No Captain Available"** is the dominant failure mode, accounting for approximately 19.8 % of all individual failure events when measured at the booking level — making supply shortage the single most actionable lever.
+Captain-initiated cancellations (6.42 %) are the **single largest failure mode** — exceeding even "No Driver Found" (3.18 %). This points to an **accept-reject economics problem** in the captain incentive structure rather than a raw headcount shortage.
 
-### 4.2 City-Level Failure Rates
+### 4.2 Cancellation Reasons
 
-| City | No-Driver Rate | Captain Cancel Rate | Total Failure Rate |
-|---|---|---|---|
-| Riyadh | **3.25 %** | 6.4 % | **17.1 %** |
-| Jeddah | **3.15 %** | 6.5 % | **16.8 %** |
-| Dubai | 2.10 % | 6.3 % | 14.9 % |
-| Abu Dhabi | 1.95 % | 6.4 % | 15.2 % |
-| Cairo | 1.70 % | 6.3 % | 14.4 % |
+| Reason | Count | Share of Failures |
+|---|---|---|
+| No Captain Available | 15,464 | 19.4 % |
+| Wrong pickup location | 9,691 | 12.1 % |
+| Vehicle issue | 5,379 | 6.7 % |
+| Customer not at pickup | 5,268 | 6.6 % |
+| Ride too short / uneconomical | 5,240 | 6.6 % |
+| Customer not responding | 5,198 | 6.5 % |
+| Customer requested cash only | 5,104 | 6.4 % |
+| Captain taking too long | 4,295 | 5.4 % |
+| Change of plan | 4,274 | 5.4 % |
+| Driver is too far | 4,262 | 5.3 % |
+| Wrong destination entered | 4,180 | 5.2 % |
+| Fare higher than expected | 4,089 | 5.1 % |
+| Customer Demand Change | 1,196 | 1.5 % |
+| Route blocked | 1,168 | 1.5 % |
+| GPS/App Error | 1,166 | 1.5 % |
+| Vehicle Breakdown | 1,062 | 1.3 % |
+| Safety Concern | 1,044 | 1.3 % |
 
-Riyadh and Jeddah show structurally higher supply-gap rates, concentrated around Ramadan evenings and local event seasons (Saudi Cup, Riyadh Season). Captain-initiated cancellation rates are near-uniform across all cities (6.3–6.5 %), ruling out city-specific demand shocks and pointing to a **systemic accept–reject economics problem** in the captain incentive structure.
+"Ride too short / uneconomical" (5,240) and "Customer requested cash only" (5,104) are both captain-side economic refusals. Together they account for ~13 % of all failures, confirming that captain incentive economics is a primary root cause.
 
-![Screenshot: City Cancellation Rate Bar Chart](screenshots/02b_city_cancellations.png)
+![Figure 5: Cancellation Reasons](screenshots/02b_cancellation_reasons.png)
 
-### 4.3 Hourly Cancellation Heatmap
+### 4.3 City Supply-Gap Table
 
-Cancellation rate spikes sharply between **07:00–09:00** (morning commute) and **17:00–20:00** (evening rush / Ramadan Iftar window). The pattern is consistent across all five cities, with Riyadh and Jeddah showing an additional spike during late-night post-Tarawih prayer periods (21:00–23:00) during Ramadan.
+| City | No-Driver Rate | Capt. Cancel Rate | Total Supply Gap | Completion Rate |
+|---|---|---|---|---|
+| Cairo | 3.36 % | 6.89 % | **10.25 %** | 83.2 % |
+| Jeddah | 3.25 % | 6.52 % | **9.76 %** | 83.5 % |
+| Riyadh | 3.27 % | 6.30 % | 9.57 % | 84.1 % |
+| Abu Dhabi | 3.06 % | 6.33 % | 9.39 % | 84.4 % |
+| Dubai | 3.05 % | 6.32 % | 9.37 % | 84.4 % |
+
+![Figure 6: Cancellation Rate by Hour](screenshots/02c_cancel_by_hour.png)
+
+![Figure 7: City Supply Gap Table](screenshots/02d_supply_gap.png)
+
+### 4.4 Hourly Cancellation Pattern
+
+Cancellation rate peaks during **07:00–09:00** and **17:00–20:00**. Riyadh and Jeddah show an additional late-night spike (21:00–23:00) during Ramadan corresponding to post-Tarawih prayer travel demand.
 
 ---
 
 ## 5. Demand Patterns & Surge Pricing
 
-![Screenshot: Demand Heatmap and Surge Distribution Page](screenshots/03_demand_surge.png)
+![Figure 8: Demand Heatmap Hour x Day](screenshots/03a_demand_heatmap.png)
 
-### 5.1 Hour × Day Demand Heatmap
+### 5.1 KPI Summary
 
-Demand follows a predictable two-peak weekday pattern:
-- **Morning peak:** 07:00–09:00 (commute)
-- **Evening peak:** 17:00–20:00 (commute + leisure)
+| Metric | Value |
+|---|---|
+| Peak-hour ride requests | 236,362 (47.3 % of total) |
+| Peak-hour completed rides | 195,080 |
+| Peak avg surge multiplier | **1.215×** |
+| Peak avg VTAT | **7.09 min** |
+| Off-peak avg surge multiplier | 1.061× |
+| Ramadan ride requests | 43,473 |
+| Ramadan completed rides | 35,744 |
+| Ramadan avg surge | **1.223×** |
+| Ramadan avg VTAT | **7.03 min** |
+| Ramadan avg fare | AED 66.24 |
+| Ramadan completion rate | **82.22 %** |
+| Non-Ramadan avg surge | 1.124× |
+| Non-Ramadan avg fare | AED 58.05 |
+| Non-Ramadan avg VTAT | 6.33 min |
+| Non-Ramadan completion rate | 84.20 % |
 
-Weekend demand skews later, peaking at 20:00–23:00 on Fridays and Saturdays. This pattern provides a highly predictable template for pre-positioning captain incentives.
+### 5.2 Ramadan Effect (March 2025)
 
-### 5.2 Ramadan Effect (1–30 March 2025)
-
-| Metric | Ramadan | Off-Period | Δ |
+| Metric | Ramadan | Non-Ramadan | Δ |
 |---|---|---|---|
-| Avg Surge Multiplier | **1.24×** | 1.09× | +0.15× |
-| Avg VTAT (wait time) | **7.24 min** | 5.48 min | +1.76 min |
-| Completion Rate | **81.3 %** | 85.1 % | −3.8 pp |
+| Avg Surge | **1.223×** | 1.124× | +0.099× |
+| Avg VTAT | **7.03 min** | 6.33 min | +0.70 min |
+| Completion Rate | **82.22 %** | 84.20 % | −1.98 pp |
+| Avg Fare | **AED 66.24** | AED 58.05 | +AED 8.19 |
 
-The 17:00–18:00 pre-Iftar window is the single sharpest supply-demand mismatch in the entire dataset. Rider demand spikes as customers travel home to break the fast while captain supply simultaneously drops as Muslim captains are themselves travelling home. A **targeted Iftar-window captain bonus** in Riyadh and Jeddah would deliver the highest incremental completion rate at minimum cost.
+The 17:00–18:00 pre-Iftar window is the sharpest supply-demand mismatch in the dataset. Surge pricing alone cannot resolve this: captain supply must be pre-incentivised before the window opens.
 
-### 5.3 Peak vs Off-Peak Surge
+### 5.3 Surge Distribution (Completed Rides)
 
-| Window | Avg Surge | Completion Rate |
+| Surge Band | Rides | Share |
 |---|---|---|
-| Peak hours (07–09, 17–20) | **1.289×** | 82.1 % |
-| Off-peak | **1.050×** | 86.7 % |
-| Ramadan pre-Iftar (17–18, Mar) | **1.41×** | 79.4 % |
+| 1.0× (No surge) | 280,651 | **66.8 %** |
+| 1.0–1.3× (Light) | 82,753 | 19.7 % |
+| 1.3–1.7× (Moderate) | 45,472 | 10.8 % |
+| 1.7–2.2× (High) | 7,614 | 1.8 % |
+| 2.2×+ (Extreme) | 3,631 | **0.9 %** |
 
-Peak-hour surge is substantially higher than off-peak, but the higher surge is not clearing the market — completion rates are still lower at peak. This is the textbook signal of a supply-constrained (not price-constrained) market: raising the fare ceiling alone will not fix the problem.
+Two-thirds of all completed rides experience **no surge at all**. Extreme surge (2.2×+) affects less than 1 % of rides.
 
-![Screenshot: Surge Distribution and Ramadan Comparison](screenshots/03b_surge_distribution.png)
+![Figure 9: Surge Distribution](screenshots/03b_surge_distribution.png)
+
+![Figure 10: Ramadan vs Non-Ramadan](screenshots/03c_ramadan_comparison.png)
 
 ---
 
 ## 6. Pricing Lab — What-If Simulations
 
-![Screenshot: Pricing Lab Interactive Simulator Page](screenshots/04_pricing_lab.png)
+![Figure 11: Pricing Lab Waterfall](screenshots/04a_pricing_waterfall.png)
 
-### 6.1 GMV Waterfall — Decomposing the Completion Gap
+### 6.1 Baseline Economics
 
-The GMV waterfall chart decomposes actual GMV (AED 25.31 M) against theoretical maximum GMV (assuming 100 % completion at average fare):
-
-| Component | AED M |
+| Component | Value |
 |---|---|
-| Theoretical max GMV | ~30.07 M |
-| Lost to supply shortage (No Driver) | −2.48 M |
-| Lost to customer cancellations | −1.06 M |
-| Lost to captain cancellations | −0.80 M |
-| Lost to system timeouts | −0.42 M |
-| **Actual GMV** | **25.31 M** |
+| Actual completed GMV | AED 24.68 M |
+| Average fare (completed) | AED 58.75 |
+| Foregone GMV (captain cancellations, 32,120 rides) | ≈ AED 1.89 M |
+| Foregone GMV (customer cancellations, 26,257 rides) | ≈ AED 1.54 M |
+| Foregone GMV (no driver found, 15,878 rides) | ≈ AED 0.93 M |
+| Foregone GMV (incomplete, 5,597 rides) | ≈ AED 0.33 M |
+| **Total foregone GMV** | **≈ AED 4.69 M** |
+| **Theoretical max GMV (100 % completion at avg fare)** | **≈ AED 29.37 M** |
 
-A **3 pp completion improvement** (from 84.2 % → 87.2 %) would recover approximately **AED 0.9 M per month** — roughly **AED 11 M annually** — on a zero-fare-increase basis. This makes completion optimisation the single highest-return lever in the entire opportunity set.
+### 6.2 Completion Recovery Scenario
 
-### 6.2 Surge × Fare Sensitivity
+A **3 pp completion lift** (84.0 % → 87.0 %):
+- Additional completed rides: 499,973 × 3 % ≈ **15,000 rides/year**
+- Additional GMV at avg fare: 15,000 × AED 58.75 ≈ **AED 0.88 M/year (≈ AED 73 K/month)**
 
-The fare-surge scatter shows a clear positive relationship up to ~1.4× surge, after which booking attempts begin declining — suggesting a **demand elasticity cliff at approximately 1.4× surge**. Operating above this threshold risks cannibalising demand while failing to attract additional supply, making it counterproductive.
+This recovery requires no fare increase — only better captain supply allocation during the gap windows.
 
-### 6.3 Completion Simulator
+### 6.3 Surge Sensitivity
 
-The interactive slider model estimates that each 1 pp improvement in captain availability during gap windows is worth approximately AED 0.3 M in annual GMV — providing a direct ROI framing for captain incentive budget decisions.
+At surge levels above approximately **1.7×** the booking-attempt rate declines, suggesting a demand elasticity cliff. Operating above this threshold risks suppressing bookings without attracting additional supply, making it counterproductive.
+
+![Figure 12: Surge x Fare Scatter](screenshots/04b_surge_fare_scatter.png)
 
 ---
 
 ## 7. Captain Pulse — Supply-Side Health
 
-![Screenshot: Captain Pulse — Tenure, Productivity and Ratings Page](screenshots/05_captain_pulse.png)
+![Figure 13: Captain Tenure Distribution](screenshots/05a_captain_tenure.png)
 
-### 7.1 Tenure Distribution
+### 7.1 Fleet Overview
 
-| Tenure Band | Share of Active Captains | Avg Rides/Year | Completion Rate |
-|---|---|---|---|
-| < 6 months | 38 % | 74 | 82.1 % |
-| 6–12 months | 29 % | 96 | 84.5 % |
-| 1–2 years | 20 % | 115 | 85.8 % |
-| 2–3 years | 12 % | 134 | 86.9 % |
-| **3+ years (Veteran)** | **1.3 %** | **162** | **88.4 %** |
+| Metric | Value |
+|---|---|
+| Active captains (2025) | 1,800 |
+| Avg captain rating | 4.02 ★ |
+| Median rides/captain | 159 |
+| P10 rides/captain | 93 |
+| P90 rides/captain | 452 |
 
-Veteran captains (3+ years) represent only **1.3 % of the active pool** yet deliver the highest completion rates and ride volumes. Careem is depleting experienced supply faster than it is creating new veterans — a structural problem that compounds over time.
+### 7.2 Tenure Tier Distribution
 
-### 7.2 Productivity Deciles
+| Tenure Tier | Captains | Share |
+|---|---|---|
+| New | 195 | 10.8 % |
+| Developing | 787 | 43.7 % |
+| Experienced | 789 | 43.8 % |
+| **Veteran** | **29** | **1.6 %** |
 
-The top 10 % of captains (D1 by annual rides) generate **23.1 % of total GMV**. The median captain completes 108 rides/year; the 90th-percentile captain completes 239. This extreme right-skew in productivity means that retaining the top decile is disproportionately valuable.
+Veteran captains represent only **1.6 % of the active fleet**. The sharp drop from Experienced to Veteran indicates significant churn at the 3-year tenure mark.
 
-![Screenshot: Captain Productivity Decile Bar Chart](screenshots/05b_productivity_deciles.png)
+### 7.3 Avg Captain Rating by Tenure
 
-### 7.3 Captain Rating Distribution
+| Tenure Tier | Avg Captain Rating |
+|---|---|
+| New | 4.07 ★ |
+| Developing | 4.04 ★ |
+| Experienced | 4.00 ★ |
+| Veteran | 3.94 ★ |
 
-The captain rating distribution is heavily left-skewed (the vast majority of ratings are 4.5–5.0 ★), which creates a **ceiling effect** that makes the rating signal weak for distinguishing good from great captains. Average captain rating is **4.52 ★**.
+Veteran captains have the **lowest average rider rating (3.94 ★)**. This weakens the case for using rating as a simple proxy for experience quality.
 
-### 7.4 Veteran Retention Risk
+![Figure 14: Rides per Captain Histogram](screenshots/05b_rides_histogram.png)
 
-The 2–3 year cohort is the pipeline to veteran status. At current churn rates, only ~1 in 10 captains who complete their first year survives to the 3-year mark. A **tenure milestone bonus** at the 2-year mark — the point at which churn spikes — would have the highest retention leverage.
+### 7.4 GMV Concentration (Captain Deciles)
+
+The **top 10 % of captains by GMV** generate **18.5 %** of total platform GMV. The median captain completes **159 rides/year** (≈ 3 rides/week); the P90 captain completes **452 rides/year** (≈ 9 rides/week), consistent with a predominantly part-time fleet.
+
+![Figure 15: Captain GMV Deciles](screenshots/05c_gmv_deciles.png)
+
+![Figure 16: Captain Rating by Tenure](screenshots/05d_rating_by_tenure.png)
+
+### 7.5 Retention Risk
+
+Retaining even 5 % more of the experienced cohort through the 3-year mark would add approximately 39 additional veteran-quality captains — roughly doubling the current veteran pool. A tenure milestone incentive at the 3-year mark would be low-cost relative to the supply quality improvement it delivers.
 
 ---
 
 ## 8. Customer Lens — Loyalty & Behaviour
 
-![Screenshot: Customer Lens — Loyalty Tiers and Spend Analysis Page](screenshots/06_customer_lens.png)
+![Figure 17: Customer Tier Mix](screenshots/06a_customer_tier.png)
 
-### 8.1 Loyalty Tier Distribution
+### 8.1 Customer Base Overview
 
-| Tier | Share of Customers | Avg Fare/Ride (AED) | Avg Rides/Year |
-|---|---|---|---|
-| Regular | ~35 % | 59.3 | 32.1 |
-| Silver | ~25 % | 59.8 | 33.0 |
-| Gold | ~20 % | 60.2 | 33.5 |
-| Platinum | ~12 % | 60.5 | 33.9 |
-| Careem Plus | ~8 % | 60.9 | 34.4 |
+| Metric | Value |
+|---|---|
+| Unique customers | 9,000 |
+| Avg rides/customer | 46.7 |
+| Median rides/customer | 32 |
+| P90 rides/customer | 93 |
+| Avg fare (completed) | AED 58.75 |
 
-**Critical finding:** All five loyalty tiers spend within **3 % of each other per ride (AED 59–61)** and take almost identical ride frequencies (~33 per year). The loyalty programme is **not yet driving meaningful incremental spend or frequency**.
+### 8.2 Loyalty Tier Mix and Spend
 
-### 8.2 Payment Mix
+| Tier | Avg Fare/Ride (AED) | Δ vs Regular |
+|---|---|---|
+| Regular | 56.93 | — |
+| Silver | 59.90 | +5.2 % |
+| Gold | 59.92 | +5.2 % |
+| Platinum | 59.71 | +4.9 % |
+| **Careem Plus** | **61.37** | **+7.8 %** |
 
-Cash remains a significant payment method, particularly in Cairo (where cash accounts for ~42 % of transactions) and among Regular-tier customers. Digital wallet adoption is highest in Dubai and among Careem Plus members, suggesting a correlation between payment modernity and loyalty engagement.
+**Critical finding:** The maximum spread across all five loyalty tiers is only **AED 4.44 per ride (7.8 %)**. The loyalty programme is functioning as a recognition scheme rather than a behavioural engine.
 
-![Screenshot: Payment Method Mix by City](screenshots/06b_payment_mix.png)
+### 8.3 Payment Method Mix (Completed Rides)
 
-### 8.3 Loyalty Programme Assessment
+| Payment Method | Rides | Share |
+|---|---|---|
+| Careem Pay | 126,963 | **30.2 %** |
+| Cash | 98,518 | 23.4 % |
+| Credit Card | 94,181 | 22.4 % |
+| Debit Card | 68,681 | 16.3 % |
+| Apple Pay | 31,778 | 7.6 % |
 
-The data suggests the loyalty programme is operating as a **recognition system rather than a behavioural change engine**. Customers are being rewarded for rides they would have taken anyway, rather than being incentivised to increase frequency or shift to higher-margin products. Targeted offers — such as discounts on Business tier upgrades for Silver/Gold members, or Careem Plus trial periods for high-frequency Regular customers — represent a material revenue opportunity.
+Cash remains the second-largest payment method (23.4 %). "Customer requested cash only" appears in the top-10 cancellation reasons with 5,104 cancellations — meaning cash preference is actively causing ride failures.
+
+![Figure 18: Payment Method Mix](screenshots/06b_payment_mix.png)
+
+![Figure 19: Avg Fare and Rides by Tier](screenshots/06c_spend_by_tier.png)
+
+![Figure 20: Rides per Customer Distribution](screenshots/06d_rides_distribution.png)
 
 ---
 
 ## 9. Quality & Ratings
 
-![Screenshot: Quality & Ratings — ETA Accuracy, VTAT and Rating Distributions](screenshots/07_quality_ratings.png)
+![Figure 21: ETA Deviation by Hour](screenshots/07a_eta_deviation.png)
 
-### 9.1 ETA Accuracy
+### 9.1 Service Quality KPIs
 
-| ETA Accuracy Band | Share of Rides |
+| Metric | Value |
 |---|---|
-| ≤ ±2 min (on-time) | **69.8 %** |
-| 2–5 min late | 18.3 % |
-| 5–8 min late | 7.4 % |
-| > 8 min late | 4.5 % |
+| Avg VTAT (wait time) | 6.39 min |
+| Avg CTAT (captain accept time) | 2.02 min |
+| Avg ETA deviation | +0.62 min (arrivals are late on average) |
+| ETA accuracy (within ±2 min) | **68.9 %** |
+| Avg Captain Rating | 4.02 ★ |
+| Avg Customer Rating | 4.15 ★ |
 
-Approximately **30 % of rides arrive outside the ±2-minute ETA window**. VTAT (vehicle time at arrival time) above 8 minutes is the strongest single predictor of customer cancellation in the dataset, driving both repeat booking decline and lower NPS.
+**31.1 % of rides arrive outside the ±2-minute ETA window** — a significant reliability gap that erodes customer trust and contributes to pre-pickup cancellations.
 
-### 9.2 VTAT Distribution
+### 9.2 VTAT Bucket Distribution
 
-Average VTAT is **6.33 minutes** across all cities and products. Reducing average VTAT from 6.33 to under 5 minutes during peak hours — primarily by pre-positioning captains in high-demand zones — would directly lift both completion rate and customer satisfaction scores.
+| Bucket | Share |
+|---|---|
+| < 3 min (Excellent) | 5.0 % |
+| 3–5 min (Good) | 24.5 % |
+| **5–8 min (Acceptable)** | **48.2 %** |
+| 8–12 min (Slow) | 19.4 % |
+| 12+ min (Poor) | 2.9 % |
 
-| City | Avg VTAT (min) | ETA Accuracy |
-|---|---|---|
-| Dubai | 5.81 | 73.2 % |
-| Abu Dhabi | 6.04 | 71.5 % |
-| Riyadh | 7.21 | 64.8 % |
-| Jeddah | 7.08 | 65.4 % |
-| Cairo | 6.52 | 68.1 % |
+**22.3 % of rides have a VTAT above 8 minutes.** VTAT > 8 min is the strongest predictor of customer cancellation before the captain arrives. The modal experience (48.2 %) is "Acceptable" at 5–8 minutes.
 
-Riyadh and Jeddah show the worst ETA accuracy, consistent with their higher supply-gap rates identified in Section 4.
+![Figure 22: VTAT Bucket Distribution](screenshots/07b_vtat_buckets.png)
 
-![Screenshot: VTAT by City and Hour-of-Day ETA Deviation Chart](screenshots/07b_vtat_eta.png)
+### 9.3 City-Level Quality Scores
 
-### 9.3 Rating Profiles
+| City | Avg Captain Rating | Avg Customer Rating | Avg VTAT (min) |
+|---|---|---|---|
+| Dubai | **4.18 ★** | **4.31 ★** | **5.84** |
+| Abu Dhabi | 4.10 ★ | 4.21 ★ | 6.28 |
+| Riyadh | 4.00 ★ | 4.12 ★ | 6.50 |
+| Jeddah | 3.91 ★ | 4.04 ★ | 6.47 |
+| Cairo | 3.71 ★ | 3.84 ★ | **7.58** |
 
-- **Customer rating (given by captains):** 4.69 ★ average — a strong positive signal for rider behaviour quality.
-- **Captain rating (given by riders):** 4.52 ★ average — high but with meaningful variance at the lower tail.
+Dubai leads all quality metrics. Cairo has the longest average VTAT (7.58 min) and the lowest ratings on both sides of the marketplace.
 
-Veteran captains consistently achieve the highest rider ratings (avg 4.71 ★), while captains in their first 6 months average 4.38 ★ — a 0.33-star onboarding gap that represents a training investment opportunity.
+![Figure 23: Captain Rating Distribution](screenshots/07c_captain_ratings.png)
+
+![Figure 24: Customer Rating Distribution](screenshots/07d_customer_ratings.png)
+
+![Figure 25: Avg Ratings by City](screenshots/07e_city_ratings.png)
 
 ---
 
 ## 10. Geographic Intelligence
 
-![Screenshot: Geo Map — City Bubble Map and City Leaderboard](screenshots/08_geo_map.png)
+![Figure 26: City Bubble Geo Map](screenshots/08a_geo_map.png)
 
 ### 10.1 City Performance Matrix
 
-| City | GMV Share | Completion Rate | AED/km | Ride Count |
-|---|---|---|---|---|
-| Dubai | **34 %** | 85.1 % | **Highest** | 2nd |
-| Abu Dhabi | 19 % | 84.7 % | High | 4th |
-| Riyadh | 23 % | **82.9 %** | Medium-High | 3rd |
-| Jeddah | 14 % | **83.2 %** | Medium | 5th |
-| Cairo | 10 % | 85.5 % | **Lowest** | **1st** |
+| City | Rides | GMV (AED M) | GMV Share | Completion | Avg Fare | Avg Surge | Avg Rating ★ | AED/km |
+|---|---|---|---|---|---|---|---|---|
+| Dubai | 169,992 | **10.99** | **44.5 %** | 84.4 % | 76.58 | 1.101× | 4.18 | **5.45** |
+| Riyadh | 119,994 | 5.97 | 24.2 % | 84.1 % | 59.16 | 1.145× | 4.00 | 4.48 |
+| Abu Dhabi | 69,996 | 4.86 | 19.7 % | **84.4 %** | **82.37** | 1.132× | 4.10 | 5.10 |
+| Jeddah | 69,995 | 2.57 | 10.4 % | 83.5 % | 43.94 | 1.159× | 3.91 | 3.64 |
+| Cairo | 69,996 | 0.29 | 1.2 % | **83.2 %** | 5.00 | **1.160×** | 3.71 | **0.47** |
 
-### 10.2 City Narratives
+### 10.2 Revenue Intensity (AED per km)
 
-**Dubai** is Careem's highest-revenue-intensity city, driven by Business and Hala EV uptake and the highest AED/km in the network. Its relatively strong completion rate (85.1 %) and high average fare make it the reference benchmark city.
+| City | AED / km |
+|---|---|
+| Dubai | **5.45** |
+| Abu Dhabi | 5.10 |
+| Riyadh | 4.48 |
+| Jeddah | 3.64 |
+| Cairo | **0.47** |
 
-**Cairo** delivers the highest raw ride count in the network but the lowest AED/km (partly due to currency conversion from EGP and partly due to the dominance of short-distance Go rides). Despite high volume, its GMV contribution is capped at 10 % — a **volume-versus-margin tradeoff** that requires a deliberate product-mix upgrade strategy.
+Dubai's revenue intensity (AED 5.45/km) is **11.6× higher** than Cairo's (AED 0.47/km). A product-mix upgrade strategy in Cairo — even shifting 10 % of rides from Go to Go+ — would meaningfully improve the city's GMV contribution.
 
-**Riyadh and Jeddah** have the worst completion rates (82.9 % and 83.2 % respectively), the longest average VTATs, and the highest no-driver rates. They also show the sharpest Ramadan seasonality. These two cities represent the **highest ROI for supply-side interventions** in the network.
+![Figure 27: AED per km by City](screenshots/08b_fare_per_km.png)
 
-**Abu Dhabi** performs solidly across all dimensions but has the smallest footprint relative to its economic size — suggesting a **market underpenetration opportunity** worth quantifying.
+### 10.3 City Narratives
 
-![Screenshot: City-Level Completion vs GMV Scatter Bubble Map](screenshots/08b_geo_bubble.png)
+**Dubai** is Careem's anchor city: 44.5 % of GMV, highest AED/km (5.45), best captain ratings (4.18 ★), and lowest VTAT (5.84 min). It is the operational benchmark.
+
+**Abu Dhabi** has the highest average fare in the network (AED 82.37) and matches Dubai's completion rate (84.4 %), but generates a disproportionately small share of total rides (14 %) relative to its economic size — a **market underpenetration opportunity**.
+
+**Riyadh** is Careem's second-largest GMV city (24.2 %) with the sharpest Ramadan seasonality in the network, making it the highest-value target for Ramadan captain incentive programmes.
+
+**Jeddah** has the second-worst completion rate (83.5 %) and the highest captain cancellation rate in the network (6.52 %). Its average fare (AED 43.94) is the lowest in the UAE/KSA tier, suggesting route-economics are poor enough to encourage captain refusals.
+
+**Cairo** requires a strategic rethink. It contributes 1.2 % of GMV despite 14 % of ride volume, has the worst supply gap (10.25 %), worst ratings (captain 3.71 ★, customer 3.84 ★), longest VTAT (7.58 min), and lowest AED/km (0.47). Continued investment in Cairo volume without a structural pricing or product-mix intervention is difficult to justify.
+
+![Figure 28: Full City Leaderboard](screenshots/08c_city_leaderboard.png)
 
 ---
 
 ## 11. Strategic Recommendations
 
-Based on the eight-dimension analysis, we propose the following prioritised intervention roadmap:
+### Priority 1 — Precision Captain Incentives in Supply-Gap Windows
 
-### Priority 1 — Target Supply Gaps During Identifiable Windows (Impact: AED 11 M/yr)
+**Evidence:** The 3 pp completion gap is concentrated in predictable windows. Captain-initiated cancellations (6.42 %) exceed no-driver events (3.18 %). Ramadan completion drops to 82.22 %. Peak-hour VTAT rises to 7.09 min.
 
-**Observation:** The 3 pp completion gap is concentrated in predictable time windows (peak commute, Ramadan Iftar, Saudi event nights) in two cities (Riyadh, Jeddah). Captain supply is the binding constraint, not demand.
+**Recommendation:** Deploy time-limited, geofenced captain bonus multipliers triggered automatically when real-time supply-demand ratio falls below a threshold. Pilot in the **17:00–18:00 Ramadan window in Riyadh and Jeddah**.
 
-**Recommendation:** Implement a **precision captain bonus programme** — time-limited incentive multipliers triggered automatically when real-time supply-demand ratio in a geofence falls below a threshold. Target the 17:00–18:00 Ramadan window in Riyadh and Jeddah as the pilot window given its sharp, predictable nature.
-
-**Expected outcome:** 3 pp completion lift → 15,000 additional completed rides/month → **AED 0.9 M incremental monthly GMV** at no fare change.
+**Expected impact:** 3 pp completion lift → ~15,000 additional completed rides/year → **≈ AED 0.88 M incremental annual GMV** at zero fare change.
 
 ---
 
-### Priority 2 — Fix Veteran Captain Churn (Impact: Long-term supply quality)
+### Priority 2 — Veteran Captain Retention Programme
 
-**Observation:** Veteran captains (3+ years) make up only 1.3 % of the active pool, yet deliver 88.4 % completion rates versus 82.1 % for new captains. Retention drops sharply at the 2-year tenure mark.
+**Evidence:** Veteran captains are only 1.6 % of the fleet (29 captains). The experienced-to-veteran dropout rate is severe. P90 captains complete 452 rides/year vs median 159.
 
-**Recommendation:** Introduce a **2-year tenure milestone bonus** (e.g., AED 500 lump sum + priority dispatch queue access for 30 days). Model the cost against the 6.3 pp completion differential — even a 10 % improvement in 2→3 year survival rates would generate positive ROI within 6 months.
-
----
-
-### Priority 3 — Redesign Loyalty Programme for Incremental Behaviour (Impact: 3–5 % GMV uplift)
-
-**Observation:** All five loyalty tiers exhibit near-identical spend per ride and ride frequency, confirming the programme is rewarding existing behaviour rather than creating new behaviour.
-
-**Recommendation:** Redesign the tier structure around **incremental triggers**:
-- Silver→Gold upgrade: unlock after 2 rides/week for 4 consecutive weeks (not just cumulative rides)
-- Careem Plus trial: offer free 30-day trial to top-quartile Regular customers
-- Product upgrade offers: discounted first Business or Hala ride for non-Business users
+**Recommendation:** Introduce a **3-year tenure milestone bonus** (one-time payment + priority dispatch queue access) to incentivise completion of the experienced-to-veteran transition. Even doubling the veteran pool from 29 to 58 captains would deliver measurable completion rate improvement.
 
 ---
 
-### Priority 4 — Reduce VTAT in Riyadh and Jeddah (Impact: 2 pp ETA accuracy improvement)
+### Priority 3 — Loyalty Programme Behavioural Redesign
 
-**Observation:** Riyadh and Jeddah have the worst ETA accuracy (64.8 % and 65.4 %) and longest VTATs (7.21 and 7.08 min). VTAT > 8 min is the strongest predictor of customer cancellation.
+**Evidence:** All five loyalty tiers spend within AED 4.44/ride of each other (7.8 % spread). Tier advancement based on cumulative rides rewards existing behaviour.
 
-**Recommendation:** Deploy **demand-prediction pre-positioning** in Riyadh and Jeddah's top-10 demand hotspots. Nudging idle captains toward these zones 15 minutes before predicted demand spikes (using the hour×day patterns identified in Section 5) can reduce cold-start latency without requiring additional supply.
+**Recommendation:** Redesign tier progression around **frequency triggers**:
+- Silver unlock: 3 rides/week for 4 consecutive weeks
+- Gold unlock: 4 rides/week sustained for 8 weeks
+- Careem Plus trial: free 30-day trial for the top-quartile of Regular-tier customers
+- Business upgrade incentive: first Business ride at Go+ pricing for non-Business users
 
 ---
 
-### Priority 5 — Address Cairo's AED/km Gap (Impact: GMV mix improvement)
+### Priority 4 — Cairo Strategic Review
 
-**Observation:** Cairo delivers the most rides but the lowest AED/km, anchoring its GMV share at a disproportionately low 10 % of total.
+**Evidence:** Cairo has 14 % of rides, 1.2 % of GMV, AED 0.47/km, worst supply gap (10.25 %), lowest ratings, and longest VTAT.
 
-**Recommendation:** Launch a **Cairo Go+ upgrade campaign** targeting existing Go riders with a small but prominent price differential, positioning the move as a cleaner, more comfortable experience. Even a 10 % shift from Go to Go+ in Cairo's ride mix would improve Cairo's GMV contribution by ~1.5 %.
+**Recommendation:**
+- **Go → Go+ upgrade campaign** targeting existing Go riders with a nominal price premium
+- **Cash-to-digital conversion incentive** via Careem Pay first-use bonus to reduce cash-refusal cancellations
+- **Minimum fare review**: assess whether fare floors make short Cairo rides economical enough to suppress "Ride too short / uneconomical" captain refusals
+
+---
+
+### Priority 5 — ETA Accuracy Initiative in Riyadh and Jeddah
+
+**Evidence:** ETA accuracy (±2 min) is only 68.9 % network-wide. Riyadh and Jeddah have the longest VTATs (6.50 and 6.47 min). VTAT > 8 min is the strongest predictor of pre-pickup customer cancellation.
+
+**Recommendation:** Deploy **demand-prediction pre-positioning** in the top-10 demand hotspots in Riyadh and Jeddah. Nudging idle captains toward high-demand zones 15 minutes before predicted spikes reduces cold-start latency without requiring additional supply. Target: reduce average VTAT in both cities from ~6.5 min to under 5.5 min during peak hours.
 
 ---
 
 ## 12. Conclusion
 
-The Careem 2025 dataset reveals a business that is operationally strong but running below its completion potential. Demand is healthy, patterned, and predictable. The gap between actual performance (84.2 % completion, AED 25.31 M GMV) and the business's structural ceiling is not a demand problem — it is a supply-allocation problem.
+The 2025 dataset describes a ride-hailing platform with structurally sound demand and a solvable supply-allocation problem. The 3 pp completion gap between actual performance (84.0 %) and the 87 % target is not caused by insufficient demand, insufficient captains, or insufficient pricing power. It is caused by a **predictable mismatch between when and where captains are active and when and where riders need them**.
 
-The three highest-leverage interventions are:
-1. **Precision captain incentives in supply-gap windows** — directly addresses the root cause of 35 % of all failures
-2. **Veteran captain retention** — protects the quality of the captain pool over the medium term
-3. **Loyalty programme redesign** — converts a recognition programme into a growth programme
+| Intervention | Est. Annual GMV Impact | Investment Level |
+|---|---|---|
+| Precision captain incentives (3 pp completion lift) | **+ AED 0.88 M** | Low–Medium (targeted bonuses) |
+| Veteran captain retention | Supply quality improvement | Low (milestone bonuses) |
+| Loyalty programme redesign | 3–5 % GMV uplift potential | Medium (product development) |
+| Cairo strategic review | Structural repositioning | Medium (analysis + re-pricing) |
+| ETA accuracy initiative | Indirect completion lift | Low (pre-positioning logic) |
 
-Together, these interventions are estimated to recover **AED 11–15 M of currently foregone annual GMV** with no fare increase required, making them among the highest-return investments available to the business in 2026.
+Together, these interventions address the root causes of Careem's current performance gap and position the business to sustainably reach and exceed the 87 % completion target in 2026.
 
 ---
 
-*Report generated from the Careem 2025 Supply–Demand Intelligence Dashboard (MIT622 Group Case, CUD). All figures are derived from the 500,000-record synthetic dataset. Screenshot placeholders in this document should be replaced with actual captures from the live Streamlit dashboard.*
-
----
-
-**End of Report**
+*Report generated from the Careem 2025 Supply–Demand Intelligence Dashboard — MIT622 Data Analytics for Managers, Group Case Study, Canadian University Dubai. All figures derived from the 499,973-record dataset (post-cleaning). Dashboard screenshots should be inserted at each image placeholder before final submission.*
