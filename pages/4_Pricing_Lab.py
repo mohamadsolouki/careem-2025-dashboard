@@ -20,8 +20,6 @@ inject_css()
 df_full = get_data()
 df = apply_filters(df_full)
 
-page_header("Pricing Lab", "What-if simulators — prescriptive analytics in action")
-
 completed = df[df["Is_Completed"]]
 baseline_gmv        = completed["Fare_AED"].sum()
 baseline_rides      = len(df)

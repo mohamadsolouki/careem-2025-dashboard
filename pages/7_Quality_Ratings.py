@@ -19,8 +19,6 @@ df_full = get_data()
 df = apply_filters(df_full)
 completed = df[df["Is_Completed"]]
 
-page_header("Quality & Ratings", "ETA accuracy · pickup wait · captain & customer ratings")
-
 # ── KPIs ──────────────────────────────────────────────────────────────────────
 avg_vtat     = completed["Avg_VTAT_mins"].mean() if len(completed) else 0
 avg_ctat     = completed["Avg_CTAT_mins"].mean() if len(completed) else 0

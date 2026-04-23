@@ -18,11 +18,6 @@ inject_css()
 df_full = get_data()
 df = apply_filters(df_full)
 
-page_header(
-    "Completion & Cancellations",
-    "Funnel · failure reasons · supply-gap per city",
-)
-
 # ── KPI row ───────────────────────────────────────────────────────────────────
 total = len(df)
 comp_rate  = df["Is_Completed"].mean()
@@ -52,6 +47,7 @@ with col_funnel:
         .rename(columns={"Booking_Status": "Status", "count": "Rides"})
         .sort_values("Rides", ascending=True)
     )
+    status_counts["Status"] = status_counts["Status"].astype(str)
     colors_map = {
         "Completed":               "#00B14F",
         "Cancelled by Customer":   "#EF4444",

@@ -19,8 +19,6 @@ df_full = get_data()
 df = apply_filters(df_full)
 completed = df[df["Is_Completed"]]
 
-page_header("Customer Lens", "Loyalty tiers · payment mix · spend & repeat behaviour")
-
 # ── KPIs ─────────────────────────────────────────────────────────────────────
 total_cust     = df["Customer_ID"].nunique()
 rides_per_cust = completed.groupby("Customer_ID")["Booking_ID"].count()

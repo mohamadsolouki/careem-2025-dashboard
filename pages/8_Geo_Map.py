@@ -19,8 +19,6 @@ df_full = get_data()
 df = apply_filters(df_full)
 completed = df[df["Is_Completed"]]
 
-page_header("Geo Map", "City bubble map · GMV concentration · revenue per km")
-
 # ── Build city-level aggregation ──────────────────────────────────────────────
 city_agg = (
     df.groupby("City", observed=True)

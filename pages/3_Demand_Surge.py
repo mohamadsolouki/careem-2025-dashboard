@@ -19,8 +19,6 @@ inject_css()
 df_full = get_data()
 df = apply_filters(df_full)
 
-page_header("Demand & Surge", "Hour × day heatmap · Ramadan overlay · surge distribution")
-
 # ── Peak vs Off-peak KPIs ─────────────────────────────────────────────────────
 peak    = df[df["Is_Peak_Hour"] & df["Is_Completed"]]
 offpeak = df[~df["Is_Peak_Hour"] & df["Is_Completed"]]

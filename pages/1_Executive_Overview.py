@@ -18,11 +18,6 @@ inject_css()
 df_full = get_data()
 df = apply_filters(df_full)
 
-page_header(
-    "Executive Overview",
-    "2025 top-line KPIs · monthly trend · product & city mix",
-)
-
 # ── KPI row ───────────────────────────────────────────────────────────────────
 completed = df[df["Is_Completed"]]
 total_rides   = len(df)

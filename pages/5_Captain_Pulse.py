@@ -20,8 +20,6 @@ df_full = get_data()
 df = apply_filters(df_full)
 completed = df[df["Is_Completed"]]
 
-page_header("Captain Pulse", "Tenure tiers · productivity deciles · rating distribution")
-
 # ── KPI row ───────────────────────────────────────────────────────────────────
 total_captains = df["Captain_ID"].nunique()
 avg_rating     = completed["Captain_Rating"].mean() if len(completed) else 0
