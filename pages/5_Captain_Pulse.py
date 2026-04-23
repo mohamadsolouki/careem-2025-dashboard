@@ -29,7 +29,7 @@ rides_per_cap  = completed.groupby("Captain_ID")["Booking_ID"].count()
 median_rides   = rides_per_cap.median() if len(rides_per_cap) else 0
 p90_rides      = rides_per_cap.quantile(0.9) if len(rides_per_cap) else 0
 veteran_pct    = (
-    (df[df["Captain_Tenure_Tier"].astype(str).str.startswith("3", na=False)]["Captain_ID"].nunique() / total_captains)
+    (df[df["Captain_Tenure_Tier"].astype(str) == "Veteran"]["Captain_ID"].nunique() / total_captains)
     if total_captains else 0
 )
 

@@ -42,10 +42,7 @@ def load_data() -> pd.DataFrame:
         dtype={
             "Booking_ID": "string",
             "City": "category",
-            "Country": "category",
             "Product": "category",
-            "Pickup_Location": "string",
-            "Drop_Location": "string",
             "Booking_Status": "category",
             "Cancellation_Reason": "string",
             "Customer_ID": "string",
@@ -110,9 +107,10 @@ def load_data() -> pd.DataFrame:
     # ── Day-of-week number (for sorting Mon=0..Sun=6) ────────────────────
     df["DayOfWeekNum"]  = df["Date"].dt.dayofweek
 
-    # ── Geo lat/lon ──────────────────────────────────────────────────────
+    # ── Geo lat/lon + Country (derived — Country removed from CSV) ───────────
     df["Latitude"]  = df["City"].map(lambda c: CITY_COORDS.get(c, {}).get("lat"))
     df["Longitude"] = df["City"].map(lambda c: CITY_COORDS.get(c, {}).get("lon"))
+    df["Country"]   = df["City"].map(lambda c: CITY_COORDS.get(c, {}).get("country"))
 
     return df
 

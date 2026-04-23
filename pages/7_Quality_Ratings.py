@@ -31,7 +31,7 @@ avg_cust_rat = completed["Customer_Rating"].mean() if len(completed) else 0
 
 c1, c2, c3, c4, c5, c6 = st.columns(6)
 c1.metric("Avg VTAT (Wait)",     f"{avg_vtat:.2f} min")
-c2.metric("Avg CTAT (Trip)",     f"{avg_ctat:.2f} min")
+c2.metric("Avg CTAT (Accept)",    f"{avg_ctat:.2f} min")
 c3.metric("Avg ETA Deviation",   f"{avg_eta_dev:+.2f} min")
 c4.metric("ETA Accuracy ±2min",  f"{eta_acc:.1%}")
 c5.metric("Avg Captain Rating",  f"{avg_cap_rat:.2f} ★")
