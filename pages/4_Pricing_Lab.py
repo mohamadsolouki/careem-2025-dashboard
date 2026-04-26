@@ -46,7 +46,8 @@ with ctrl_b:
     target_comp = st.slider(
         "Target Completion Rate (%)",
         min_value=80, max_value=95,
-        value=87, step=1,
+        value=int(round(baseline_comp * 100)),
+        step=1,
         help="What completion rate are you targeting? Simulates ride recovery.",
     )
 with ctrl_c:
@@ -73,7 +74,13 @@ SURGE_COMPLETION_SENSITIVITY = 0.07
 fare_completion_drag = max(0.0, (fare_adj / 100) * 0.25)
 
 surge_penalty   = (surge_adj - 1.0) * SURGE_COMPLETION_SENSITIVITY
-sim_comp        = float(np.clip(target_rate - surge_penalty - fare_completion_drag, 0.50, 1.0))
+
+# Target slider is integer (step=1). To avoid a rounding-induced non-zero delta
+# at the default position, we treat it as a lift above the rounded baseline so
+# that slider_default → lift = 0 → sim_comp = baseline_comp exactly.
+slider_baseline = int(round(baseline_comp * 100))   # e.g. 84 when baseline is 84.03%
+target_lift     = (target_comp - slider_baseline) / 100  # 0 at default, +0.06 at 90%
+sim_comp        = float(np.clip(baseline_comp + target_lift - surge_penalty - fare_completion_drag, 0.50, 1.0))
 
 delta_comp      = sim_comp - baseline_comp
 recovered_rides = int(baseline_rides * delta_comp)   # negative when sim_comp < baseline_comp
@@ -91,7 +98,7 @@ k1.metric(
 k2.metric(
     "Simulated GMV",
     f"AED {total_sim_gmv/1e6:.2f}M",
-    delta=f"AED {(total_sim_gmv - baseline_gmv)/1e6:+.2f}M",
+    delta=f"{(total_sim_gmv - baseline_gmv)/1e6:+.2f}M AED",
     delta_color="normal",
 )
 k3.metric(
