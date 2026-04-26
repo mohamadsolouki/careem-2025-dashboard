@@ -194,7 +194,7 @@ with col_city_rat:
         height=260,
         margin=dict(l=0, r=0, t=10, b=0),
         barmode="group",
-        yaxis=dict(range=[4, 5], title="Rating ★", gridcolor=CHART_GRID),
+        yaxis=dict(range=[3.5, 5], title="Rating ★", gridcolor=CHART_GRID),
         xaxis=dict(gridcolor=CHART_GRID),
         legend=dict(orientation="h", x=0, y=1.1, font_size=11),
         font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
