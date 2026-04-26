@@ -38,7 +38,7 @@ c6.metric("Customer Rating",  f"{cust_rating:.2f} ★")
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Monthly trend ────────────────────────────────────────────────────────────
-section_title("Monthly Trend — GMV vs Rides")
+section_title("Monthly Trend — GMV vs Rides (with 3-Month Forecast)")
 monthly = (
     df.groupby("YearMonth")
     .agg(
@@ -50,7 +50,30 @@ monthly = (
 )
 monthly["GMV_M"] = monthly["GMV"] / 1e6
 
+# ── Linear forecast: fit on month index, project 3 months ahead ───────────────
+import numpy as np
+n = len(monthly)
+x_idx = np.arange(n)
+
+# GMV linear fit
+gmv_coeffs  = np.polyfit(x_idx, monthly["GMV_M"].values, 1)
+rides_coeffs = np.polyfit(x_idx, monthly["Rides"].values, 1)
+
+# Generate 3 forecast months beyond the last historical month
+last_ym = pd.Period(monthly["YearMonth"].iloc[-1], freq="M")
+fcast_periods = [str(last_ym + i) for i in range(1, 4)]
+fcast_idx     = np.arange(n, n + 3)
+fcast_gmv     = np.polyval(gmv_coeffs,   fcast_idx).clip(min=0)
+fcast_rides   = np.polyval(rides_coeffs, fcast_idx).clip(min=0)
+
+# Bridge: connect last historical point to first forecast point for continuity
+bridge_x      = [monthly["YearMonth"].iloc[-1], fcast_periods[0]]
+bridge_gmv    = [monthly["GMV_M"].iloc[-1],      fcast_gmv[0]]
+bridge_rides  = [monthly["Rides"].iloc[-1],       fcast_rides[0]]
+
 fig_trend = go.Figure()
+
+# Historical bars & line
 fig_trend.add_bar(
     x=monthly["YearMonth"], y=monthly["GMV_M"],
     name="GMV (AED M)", marker_color=PLOTLY_COLORS[0],
@@ -63,11 +86,53 @@ fig_trend.add_scatter(
     marker=dict(size=5),
     yaxis="y2",
 )
+
+# Forecast GMV — dashed bars (semi-transparent)
+fig_trend.add_bar(
+    x=fcast_periods, y=fcast_gmv,
+    name="GMV Forecast", marker_color=PLOTLY_COLORS[0],
+    marker_opacity=0.35,
+    marker_pattern_shape="/",
+    yaxis="y1",
+)
+
+# Bridge line (solid → dashed transition)
+fig_trend.add_scatter(
+    x=bridge_x, y=bridge_gmv,
+    mode="lines", showlegend=False,
+    line=dict(color=PLOTLY_COLORS[0], width=1.5, dash="dot"),
+    yaxis="y1",
+)
+
+# Forecast Rides — dashed line
+fig_trend.add_scatter(
+    x=bridge_x, y=bridge_rides,
+    mode="lines", showlegend=False,
+    line=dict(color=PLOTLY_COLORS[1], width=1.5, dash="dot"),
+    yaxis="y2",
+)
+fig_trend.add_scatter(
+    x=fcast_periods, y=fcast_rides,
+    name="Rides Forecast", mode="lines+markers",
+    line=dict(color=PLOTLY_COLORS[1], width=2, dash="dash"),
+    marker=dict(size=6, symbol="diamond"),
+    yaxis="y2",
+)
+
+# Vertical separator line between historical and forecast
+fig_trend.add_vline(
+    x=last_ym.to_timestamp().timestamp() * 1000,
+    line_dash="dot", line_color="#94A3B8", line_width=1.2,
+    annotation_text="Forecast →",
+    annotation_position="top right",
+    annotation_font=dict(size=10, color="#94A3B8"),
+)
+
 fig_trend.update_layout(
     template=PLOTLY_TEMPLATE,
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    height=300,
+    height=320,
     margin=dict(l=0, r=0, t=10, b=0),
     legend=dict(orientation="h", x=0, y=1.12, font_size=11),
     yaxis=dict(title="GMV (AED M)", gridcolor=CHART_GRID, rangemode="tozero"),
@@ -75,8 +140,16 @@ fig_trend.update_layout(
     xaxis=dict(gridcolor=CHART_GRID),
     font=dict(family=CHART_FONT_FAMILY, color=CHART_FONT, size=11),
     bargap=0.25,
+    barmode="overlay",
 )
 st.plotly_chart(fig_trend, use_container_width=True)
+
+# Forecast summary callout
+fcast_total_gmv = fcast_gmv.sum()
+col_f1, col_f2, col_f3 = st.columns(3)
+col_f1.metric(f"GMV Forecast — {fcast_periods[0]}", f"AED {fcast_gmv[0]:.2f}M")
+col_f2.metric(f"GMV Forecast — {fcast_periods[1]}", f"AED {fcast_gmv[1]:.2f}M")
+col_f3.metric(f"GMV Forecast — {fcast_periods[2]}", f"AED {fcast_gmv[2]:.2f}M")
 
 # ── Donuts + leaderboard ──────────────────────────────────────────────────────
 col_prod, col_city, col_tbl = st.columns([1, 1, 2])
