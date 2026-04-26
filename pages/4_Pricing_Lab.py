@@ -62,13 +62,23 @@ st.markdown("</div>", unsafe_allow_html=True)
 fare_factor   = 1 + fare_adj / 100
 sim_gmv       = baseline_gmv * surge_adj * fare_factor
 
-# Completion recovery: delta from target × baseline rides = recovered rides
 target_rate   = target_comp / 100
-delta_comp    = max(target_rate - baseline_comp, 0)
-recovered_rides = int(baseline_rides * delta_comp)
 avg_fare_base = completed["Fare_AED"].mean() if len(completed) else 60
-recovered_gmv = recovered_rides * avg_fare_base * surge_adj * fare_factor
-total_sim_gmv = sim_gmv + recovered_gmv
+
+# Surge effect on completion: calibrated from dataset.
+# Real data shows completion drops from 85.1% (surge ≤1.0) to ~81.5% (surge 1.3–1.6),
+# implying ~7% drop per 1.0× increase in surge multiplier.
+# Fare drag: customers cancel slightly more when fares rise (~25% pass-through).
+SURGE_COMPLETION_SENSITIVITY = 0.07
+fare_completion_drag = max(0.0, (fare_adj / 100) * 0.25)
+
+surge_penalty   = (surge_adj - 1.0) * SURGE_COMPLETION_SENSITIVITY
+sim_comp        = float(np.clip(target_rate - surge_penalty - fare_completion_drag, 0.50, 1.0))
+
+delta_comp      = sim_comp - baseline_comp
+recovered_rides = int(baseline_rides * delta_comp)   # negative when sim_comp < baseline_comp
+recovered_gmv   = recovered_rides * avg_fare_base * surge_adj * fare_factor
+total_sim_gmv   = sim_gmv + recovered_gmv
 
 # ── KPI comparison row ─────────────────────────────────────────────────────────
 section_title("Simulated Outcome vs Baseline")
@@ -82,13 +92,13 @@ k2.metric(
     "Simulated GMV",
     f"AED {total_sim_gmv/1e6:.2f}M",
     delta=f"AED {(total_sim_gmv - baseline_gmv)/1e6:+.2f}M",
-    delta_color="normal" if total_sim_gmv >= baseline_gmv else "inverse",
+    delta_color="normal",
 )
 k3.metric(
     "Recovered Rides",
     f"{recovered_rides:,}",
-    delta=f"{delta_comp:+.1%} completion lift",
-    delta_color="normal" if recovered_rides >= 0 else "inverse",
+    delta=f"{delta_comp:+.1%} completion shift",
+    delta_color="normal",
 )
 k4.metric(
     "Monthly Recovery Est.",
@@ -96,8 +106,9 @@ k4.metric(
 )
 k5.metric(
     "Simulated Completion",
-    f"{min(target_rate, 1):.1%}",
-    delta=f"{target_rate - baseline_comp:+.1%} vs actual",
+    f"{sim_comp:.1%}",
+    delta=f"{sim_comp - baseline_comp:+.1%} vs actual",
+    delta_color="normal",
 )
 
 st.markdown("<br>", unsafe_allow_html=True)
